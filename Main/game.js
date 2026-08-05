@@ -11,6 +11,12 @@ const REWIND_SECONDS = 2.2;
 const FPS_REFERENCE = 60;
 const LOOP_FRAME_LIMIT = Math.floor(LOOP_SECONDS * FPS_REFERENCE);
 const REWIND_FRAME_LIMIT = Math.floor(REWIND_SECONDS * FPS_REFERENCE);
+const ENEMY_STATE = {
+  PATROL: 'patrol',
+  CHASE: 'chase',
+  SEARCH: 'search',
+  RETURN: 'return',
+};
 
 const player = {
   x: canvas.width / 2,
@@ -193,15 +199,29 @@ function createPatrolEnemies() {
     [tileCenter(12, 12), tileCenter(19, 12), tileCenter(19, 16), tileCenter(12, 16)],
   ];
 
+  patrolLines.forEach((waypoints) => {
+    waypoints.forEach((point) => {
+      clearArea(terrainMap, point.x, point.y, 1);
+    });
+  });
+
   return patrolLines.map((waypoints, index) => ({
     id: index,
     x: waypoints[0].x,
     y: waypoints[0].y,
     radius: 13,
+    baseSpeed: 84 + index * 12,
     speed: 84 + index * 12,
     waypoints,
     waypointIndex: 1,
     hitCooldown: 0,
+    state: ENEMY_STATE.PATROL,
+    visionRadius: 180 + index * 15,
+    fieldOfView: Math.PI * 0.78,
+    searchTimer: 0,
+    searchAnchor: { x: waypoints[0].x, y: waypoints[0].y },
+    returnIndex: 1,
+    facing: 0,
   }));
 }
 
@@ -263,6 +283,188 @@ function actorOnPad(actor, pad) {
   return distance(actor, pad) <= actor.radius + pad.radius - 4;
 }
 
+function angleDifference(a, b) {
+  let diff = a - b;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return Math.abs(diff);
+}
+
+function hasLineOfSight(from, to) {
+  const steps = Math.max(2, Math.ceil(distance(from, to) / 12));
+  for (let step = 1; step < steps; step += 1) {
+    const ratio = step / steps;
+    const sampleX = from.x + (to.x - from.x) * ratio;
+    const sampleY = from.y + (to.y - from.y) * ratio;
+    if (isSolidTile(getTileTypeAt(sampleX, sampleY))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function moveCircle(entity, deltaX, deltaY) {
+  const nextX = entity.x + deltaX;
+  const nextY = entity.y + deltaY;
+
+  if (canOccupyCircle(nextX, entity.y, entity.radius)) {
+    entity.x = nextX;
+  }
+
+  if (canOccupyCircle(entity.x, nextY, entity.radius)) {
+    entity.y = nextY;
+  }
+}
+
+function setEnemyChase(enemy) {
+  enemy.state = ENEMY_STATE.CHASE;
+  enemy.speed = enemy.baseSpeed * 1.45;
+  enemy.searchTimer = 0;
+}
+
+function setEnemySearch(enemy) {
+  enemy.state = ENEMY_STATE.SEARCH;
+  enemy.speed = enemy.baseSpeed * 1.12;
+  enemy.searchTimer = 2.2;
+  enemy.searchAnchor = { x: player.x, y: player.y };
+}
+
+function setEnemyReturn(enemy) {
+  enemy.state = ENEMY_STATE.RETURN;
+  enemy.speed = enemy.baseSpeed * 1.08;
+  enemy.searchTimer = 0;
+  enemy.returnIndex = findClosestWaypointIndex(enemy);
+}
+
+function findClosestWaypointIndex(enemy) {
+  let bestIndex = 0;
+  let bestDistance = Infinity;
+  for (let index = 0; index < enemy.waypoints.length; index += 1) {
+    const waypoint = enemy.waypoints[index];
+    const currentDistance = distance(enemy, waypoint);
+    if (currentDistance < bestDistance) {
+      bestDistance = currentDistance;
+      bestIndex = index;
+    }
+  }
+  return bestIndex;
+}
+
+function canEnemySeePlayer(enemy) {
+  const distanceToPlayer = distance(enemy, player);
+  if (distanceToPlayer > enemy.visionRadius) {
+    return false;
+  }
+
+  const focusAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+  const facingAngle = enemy.facing ?? focusAngle;
+  if (angleDifference(focusAngle, facingAngle) > enemy.fieldOfView / 2) {
+    return false;
+  }
+
+  return hasLineOfSight(enemy, player);
+}
+
+function updateEnemyPatrol(enemy, deltaTime) {
+  const targetWaypoint = enemy.waypoints[enemy.waypointIndex];
+  const directionX = targetWaypoint.x - enemy.x;
+  const directionY = targetWaypoint.y - enemy.y;
+  const distanceToTarget = Math.hypot(directionX, directionY);
+
+  if (canEnemySeePlayer(enemy)) {
+    setEnemyChase(enemy);
+    return;
+  }
+
+  if (distanceToTarget < 4) {
+    enemy.waypointIndex = (enemy.waypointIndex + 1) % enemy.waypoints.length;
+    enemy.facing = Math.atan2(directionY, directionX);
+    return;
+  }
+
+  const step = enemy.speed * deltaTime;
+  const ratio = Math.min(step / distanceToTarget, 1);
+  const nextX = enemy.x + directionX * ratio;
+  const nextY = enemy.y + directionY * ratio;
+
+  if (canOccupyCircle(nextX, nextY, enemy.radius)) {
+    moveCircle(enemy, directionX * ratio, directionY * ratio);
+    enemy.facing = Math.atan2(directionY, directionX);
+  } else {
+    enemy.waypointIndex = (enemy.waypointIndex + 1) % enemy.waypoints.length;
+  }
+}
+
+function updateEnemyChase(enemy, deltaTime) {
+  const directionX = player.x - enemy.x;
+  const directionY = player.y - enemy.y;
+  const distanceToPlayer = Math.hypot(directionX, directionY);
+
+  enemy.facing = Math.atan2(directionY, directionX);
+
+  if (distanceToPlayer > enemy.visionRadius * 1.15) {
+    setEnemySearch(enemy);
+    return;
+  }
+
+  if (!canEnemySeePlayer(enemy)) {
+    setEnemySearch(enemy);
+    return;
+  }
+
+  const step = enemy.speed * deltaTime;
+  const ratio = distanceToPlayer > 0 ? Math.min(step / distanceToPlayer, 1) : 0;
+  moveCircle(enemy, directionX * ratio, directionY * ratio);
+}
+
+function updateEnemySearch(enemy, deltaTime) {
+  enemy.facing = Math.atan2(enemy.searchAnchor.y - enemy.y, enemy.searchAnchor.x - enemy.x);
+
+  if (canEnemySeePlayer(enemy)) {
+    setEnemyChase(enemy);
+    return;
+  }
+
+  const directionX = enemy.searchAnchor.x - enemy.x;
+  const directionY = enemy.searchAnchor.y - enemy.y;
+  const distanceToAnchor = Math.hypot(directionX, directionY);
+  if (distanceToAnchor > 8) {
+    const step = enemy.speed * deltaTime;
+    const ratio = Math.min(step / distanceToAnchor, 1);
+    moveCircle(enemy, directionX * ratio, directionY * ratio);
+  }
+
+  enemy.searchTimer -= deltaTime;
+  if (enemy.searchTimer <= 0) {
+    setEnemyReturn(enemy);
+  }
+}
+
+function updateEnemyReturn(enemy, deltaTime) {
+  if (canEnemySeePlayer(enemy)) {
+    setEnemyChase(enemy);
+    return;
+  }
+
+  const targetWaypoint = enemy.waypoints[enemy.returnIndex];
+  const directionX = targetWaypoint.x - enemy.x;
+  const directionY = targetWaypoint.y - enemy.y;
+  const distanceToTarget = Math.hypot(directionX, directionY);
+
+  enemy.facing = Math.atan2(directionY, directionX);
+
+  if (distanceToTarget < 5) {
+    enemy.state = ENEMY_STATE.PATROL;
+    enemy.speed = enemy.baseSpeed;
+    enemy.waypointIndex = (enemy.returnIndex + 1) % enemy.waypoints.length;
+    return;
+  }
+
+  const step = enemy.speed * deltaTime;
+  const ratio = Math.min(step / distanceToTarget, 1);
+  moveCircle(enemy, directionX * ratio, directionY * ratio);
+}
+
 function updateGhosts() {
   for (let i = ghosts.length - 1; i >= 0; i -= 1) {
     const ghost = ghosts[i];
@@ -313,26 +515,18 @@ function updateEnemies(deltaTime) {
       enemy.hitCooldown -= deltaTime;
     }
 
-    const target = enemy.waypoints[enemy.waypointIndex];
-    const directionX = target.x - enemy.x;
-    const directionY = target.y - enemy.y;
-    const distanceToTarget = Math.hypot(directionX, directionY);
-
-    if (distanceToTarget < 4) {
-      enemy.waypointIndex = (enemy.waypointIndex + 1) % enemy.waypoints.length;
-      continue;
+    if (canEnemySeePlayer(enemy) && enemy.state !== ENEMY_STATE.CHASE) {
+      setEnemyChase(enemy);
     }
 
-    const step = enemy.speed * deltaTime;
-    const ratio = Math.min(step / distanceToTarget, 1);
-    const nextX = enemy.x + directionX * ratio;
-    const nextY = enemy.y + directionY * ratio;
-
-    if (canOccupyCircle(nextX, nextY, enemy.radius)) {
-      enemy.x = nextX;
-      enemy.y = nextY;
-    } else {
-      enemy.waypointIndex = (enemy.waypointIndex + 1) % enemy.waypoints.length;
+    if (enemy.state === ENEMY_STATE.PATROL) {
+      updateEnemyPatrol(enemy, deltaTime);
+    } else if (enemy.state === ENEMY_STATE.CHASE) {
+      updateEnemyChase(enemy, deltaTime);
+    } else if (enemy.state === ENEMY_STATE.SEARCH) {
+      updateEnemySearch(enemy, deltaTime);
+    } else if (enemy.state === ENEMY_STATE.RETURN) {
+      updateEnemyReturn(enemy, deltaTime);
     }
 
     if (enemy.hitCooldown <= 0 && distance(enemy, player) <= enemy.radius + player.radius - 2) {
@@ -487,7 +681,16 @@ function drawTerrain() {
 
 function drawEnemies() {
   for (const enemy of enemies) {
-    context.fillStyle = enemy.hitCooldown > 0 ? '#f97363' : '#ff7f50';
+    if (enemy.state === ENEMY_STATE.CHASE) {
+      context.fillStyle = enemy.hitCooldown > 0 ? '#ff8b94' : '#ff4d4d';
+    } else if (enemy.state === ENEMY_STATE.SEARCH) {
+      context.fillStyle = '#f59e0b';
+    } else if (enemy.state === ENEMY_STATE.RETURN) {
+      context.fillStyle = '#60a5fa';
+    } else {
+      context.fillStyle = enemy.hitCooldown > 0 ? '#f97363' : '#ff7f50';
+    }
+
     context.beginPath();
     context.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
     context.fill();
@@ -497,6 +700,13 @@ function drawEnemies() {
     context.beginPath();
     context.arc(enemy.x, enemy.y, enemy.radius + 4, 0, Math.PI * 2);
     context.stroke();
+
+    if (enemy.state === ENEMY_STATE.CHASE || enemy.state === ENEMY_STATE.SEARCH) {
+      context.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      context.beginPath();
+      context.arc(enemy.x, enemy.y, enemy.visionRadius, 0, Math.PI * 2);
+      context.stroke();
+    }
   }
 }
 
@@ -552,6 +762,7 @@ function render() {
   context.fillText(`Time Clones: ${ghosts.length}`, 20, 56);
   context.fillText(`Loops Created: ${loopsCreated}`, 20, 80);
   context.fillText(`Stability: ${temporalStability}/5`, 20, 104);
+  context.fillText('Enemy AI: patrol -> chase -> search -> return', 20, 128);
   context.fillText('Hold Shift to rewind | Press Space or T to create a time clone', 20, canvas.height - 20);
 
   const barX = canvas.width - 250;
