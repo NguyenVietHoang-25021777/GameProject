@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameProject - Offline Starter</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel hero">
+        <div>
+          <p class="eyebrow">Offline Game Starter</p>
+          <h1>Khung cơ bản cho game chạy local</h1>
+          <p class="lead">
+            Đây là demo tối giản để bạn thử vòng lặp game, điều khiển nhân vật,
+            và sau đó mở rộng thành gameplay thật.
+          </p>
+        </div>
+        <div class="status" id="serverStatus">Đang kiểm tra server...</div>
+      </section>
+
+      <section class="panel game-area">
+        <canvas id="gameCanvas" width="960" height="540" aria-label="Game canvas"></canvas>
+        <div class="hud">
+          <span>Move: Arrow keys / WASD | Space: tạo bóng thời gian | Shift: tua ngược</span>
+          <span>Địa hình có tường và vùng nước làm chậm, quái đi tuần sẽ làm giảm Stability</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="/game.js"></script>
+  </body>
+</html>

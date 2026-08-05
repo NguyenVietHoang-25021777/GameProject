@@ -1,0 +1,119 @@
+:root {
+  color-scheme: dark;
+  --bg: #09111f;
+  --panel: rgba(14, 22, 38, 0.92);
+  --panel-border: rgba(127, 181, 255, 0.18);
+  --text: #e8eefc;
+  --muted: #9fb2d6;
+  --accent: #6bdcff;
+  --accent-2: #ffd166;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(107, 220, 255, 0.16), transparent 28%),
+    linear-gradient(160deg, #050914 0%, #09111f 52%, #0f1c33 100%);
+}
+
+.shell {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 40px;
+  display: grid;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.hero {
+  padding: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.8rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 1.02;
+}
+
+.lead {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+.status {
+  min-width: 240px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(107, 220, 255, 0.12);
+  color: var(--text);
+  border: 1px solid rgba(107, 220, 255, 0.24);
+  text-align: center;
+}
+
+.game-area {
+  padding: 18px;
+}
+
+#gameCanvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0b1221 0%, #111d33 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status {
+    min-width: 0;
+  }
+
+  .hud {
+    flex-direction: column;
+  }
+}

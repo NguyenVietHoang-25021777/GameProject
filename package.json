@@ -1,0 +1,13 @@
+{
+  "name": "gameproject",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline game starter with a local demo server and canvas gameplay loop.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
