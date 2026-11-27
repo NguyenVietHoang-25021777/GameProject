@@ -1,0 +1,59 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="PlayerHud.uss" />
+    <ui:VisualElement name="hud-root" class="hud-root" picking-mode="Ignore">
+        <ui:VisualElement name="top-row" class="top-row" picking-mode="Ignore">
+            <ui:VisualElement name="left-column" class="left-column" picking-mode="Ignore">
+                <ui:VisualElement name="vitals-panel" class="vitals-panel" picking-mode="Ignore">
+                    <ui:VisualElement name="hp-group" class="stat-group" picking-mode="Ignore">
+                        <ui:VisualElement class="stat-header" picking-mode="Ignore">
+                            <ui:Label text="HP" class="stat-label stat-label--hp" picking-mode="Ignore" />
+                            <ui:Label name="hp-value" text="100 / 100" class="stat-value" picking-mode="Ignore" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="bar-track" picking-mode="Ignore">
+                            <ui:VisualElement name="hp-fill" class="bar-fill bar-fill--hp" picking-mode="Ignore" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="stamina-group" class="stat-group stat-group--last" picking-mode="Ignore">
+                        <ui:VisualElement class="stat-header" picking-mode="Ignore">
+                            <ui:Label text="STAMINA" class="stat-label stat-label--stamina" picking-mode="Ignore" />
+                            <ui:Label name="stamina-value" text="100 / 100" class="stat-value" picking-mode="Ignore" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="bar-track" picking-mode="Ignore">
+                            <ui:VisualElement name="stamina-fill" class="bar-fill bar-fill--stamina" picking-mode="Ignore" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="skills-legend-panel" class="skills-legend-panel" picking-mode="Ignore">
+                    <ui:Label text="CHIÊU THỨC  [K] Sáng tạo  •  [F5/F9]" class="legend-title" picking-mode="Ignore" />
+                    <ui:VisualElement name="skills-legend-list" class="skills-legend-list" picking-mode="Ignore" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="right-column" class="right-column" picking-mode="Ignore">
+                <ui:VisualElement name="quest-panel" class="quest-panel" picking-mode="Ignore">
+                    <ui:Label name="quest-category" text="NHIỆM VỤ HIỆN TẠI" class="quest-category" picking-mode="Ignore" />
+                    <ui:Label name="quest-title" text="Gặp gỡ Ẩn Sĩ" class="quest-title" picking-mode="Ignore" />
+                    <ui:Label name="quest-desc" text="Tìm Ẩn Sĩ ở góc sân và nhấn [E] để trò chuyện." class="quest-desc" picking-mode="Ignore" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="skill-banner" class="skill-banner skill-banner--hidden" picking-mode="Ignore">
+                    <ui:Label name="skill-banner-kicker" text="KÍCH HOẠT CHIÊU THỨC" class="skill-banner-kicker" picking-mode="Ignore" />
+                    <ui:Label name="skill-banner-name" text="LONG QUYỂN" class="skill-banner-name" picking-mode="Ignore" />
+                    <ui:Label name="skill-banner-detail" text="W → W → Space  |  Lao tới + Sóng xung kích" class="skill-banner-detail" picking-mode="Ignore" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="bottom-column" class="bottom-column" picking-mode="Ignore">
+            <ui:VisualElement name="interact-prompt" class="interact-prompt interact-prompt--hidden" picking-mode="Ignore">
+                <ui:Label name="interact-prompt-text" text="Nhấn [E] để tương tác với Ẩn Sĩ" class="interact-prompt-text" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="combo-buffer-bar" class="combo-buffer-bar combo-buffer-bar--hidden" picking-mode="Ignore">
+                <ui:Label name="combo-buffer-text" text="" class="combo-buffer-text" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

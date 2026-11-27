@@ -1,0 +1,72 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="SkillCreator.uss" />
+    <ui:VisualElement name="creator-overlay" class="creator-overlay creator-overlay--hidden">
+        <ui:VisualElement name="creator-modal" class="creator-modal">
+            <ui:VisualElement class="modal-header">
+                <ui:VisualElement class="modal-title-group">
+                    <ui:Label text="SÁNG TẠO CHIÊU THỨC" class="modal-title" />
+                    <ui:Label text="Kết hợp 3–4 bước di chuyển và 1–2 hiệu ứng (Nhấn K hoặc Esc để đóng)" class="modal-subtitle" />
+                </ui:VisualElement>
+                <ui:Button name="btn-close" text="Đóng (K)" class="btn-secondary" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="modal-body">
+                <!-- Left Column: Skill Builder -->
+                <ui:VisualElement class="builder-column">
+                    <ui:VisualElement class="section">
+                        <ui:Label text="1. TÊN CHIÊU THỨC" class="section-label" />
+                        <ui:TextField name="skill-name-input" value="Lôi Ảnh Bộ" class="name-input" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="section">
+                        <ui:VisualElement class="section-row">
+                            <ui:Label text="2. CHUỖI BƯỚC DI CHUYỂN (3–4 BƯỚC)" class="section-label" />
+                            <ui:VisualElement class="mini-actions">
+                                <ui:Button name="btn-undo-step" text="Xóa 1 bước" class="btn-mini" />
+                                <ui:Button name="btn-clear-steps" text="Xóa hết" class="btn-mini" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+
+                        <ui:VisualElement name="step-preview-box" class="step-preview-box">
+                            <ui:Label name="step-preview-label" text="Chưa chọn bước nào (chọn 3–4 bước bên dưới)" class="step-preview-label" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="step-buttons-grid">
+                            <ui:Button name="btn-step-forward" text="Tiến (W)" class="btn-step" />
+                            <ui:Button name="btn-step-backward" text="Lùi (S)" class="btn-step" />
+                            <ui:Button name="btn-step-left" text="Trái (A)" class="btn-step" />
+                            <ui:Button name="btn-step-right" text="Phải (D)" class="btn-step" />
+                            <ui:Button name="btn-step-jump" text="Nhảy (Space)" class="btn-step" />
+                            <ui:Button name="btn-step-dash" text="Lướt (Shift)" class="btn-step" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="section section--last">
+                        <ui:VisualElement class="section-row">
+                            <ui:Label text="3. CHỌN HIỆU ỨNG KẾT HỢP (1–2 HIỆU ỨNG)" class="section-label" />
+                            <ui:Label name="cost-preview-label" text="Stamina: 25  |  Hồi chiêu: 2.5s" class="cost-preview" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="effects-grid">
+                            <ui:Toggle name="toggle-lunge" label="Lao tới (ForwardLunge)" class="effect-toggle" />
+                            <ui:Toggle name="toggle-shockwave" label="Sóng xung kích (AreaShockwave)" class="effect-toggle" />
+                            <ui:Toggle name="toggle-leap" label="Bật nhảy cao (HighLeap)" class="effect-toggle" />
+                            <ui:Toggle name="toggle-heal" label="Hồi HP +30 (HealBurst)" class="effect-toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- Right Column: Equipped Skills List -->
+                <ui:VisualElement class="equipped-column">
+                    <ui:Label text="CHIÊU THỨC ĐANG TRANG BỊ" class="section-label" />
+                    <ui:ScrollView name="equipped-list" class="equipped-list" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="modal-footer">
+                <ui:Label name="status-message" text="Chọn 3–4 bước và 1–2 hiệu ứng, sau đó bấm Lưu chiêu thức." class="status-message" />
+                <ui:Button name="btn-save-skill" text="Lưu chiêu thức" class="btn-primary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

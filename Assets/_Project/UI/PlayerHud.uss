@@ -1,0 +1,381 @@
+:root {
+    --panel-bg: rgba(15, 20, 28, 0.80);
+    --panel-border: rgba(255, 255, 255, 0.14);
+    --track-bg: rgba(8, 11, 16, 0.85);
+    --track-border: rgba(255, 255, 255, 0.10);
+
+    --hp-fill: #DC3C3C;
+    --hp-fill-low: #FF2424;
+    --stamina-fill: #4BC85A;
+    --stamina-fill-exhausted: #E8A838;
+
+    --accent-gold: #F5C451;
+    --accent-cyan: #5CE1FF;
+    --accent-warn: #F06A6A;
+    --accent-green: #4BC85A;
+
+    --text-primary: #F4F7FA;
+    --text-muted: #B8C2CC;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+}
+
+.hud-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-left: 28px;
+    padding-right: 28px;
+    padding-top: 28px;
+    padding-bottom: 28px;
+}
+
+.top-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.left-column {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.right-column {
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.vitals-panel {
+    width: 310px;
+    background-color: var(--panel-bg);
+    border-width: 1px;
+    border-color: var(--panel-border);
+    border-radius: 10px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.stat-group {
+    flex-direction: column;
+    margin-bottom: var(--space-md);
+}
+
+.stat-group--last {
+    margin-bottom: 0;
+}
+
+.stat-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.stat-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin: 0;
+    padding: 0;
+}
+
+.stat-label--hp {
+    color: #F5A3A3;
+}
+
+.stat-label--stamina {
+    color: #AEE8B4;
+}
+
+.stat-value {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+}
+
+.bar-track {
+    width: 100%;
+    height: 16px;
+    background-color: var(--track-bg);
+    border-width: 1px;
+    border-color: var(--track-border);
+    border-radius: 6px;
+    overflow: hidden;
+    padding: 2px;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    transition-property: width, background-color;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+}
+
+.bar-fill--hp {
+    background-color: var(--hp-fill);
+}
+
+.bar-fill--low {
+    background-color: var(--hp-fill-low);
+}
+
+.bar-fill--stamina {
+    background-color: var(--stamina-fill);
+}
+
+.bar-fill--exhausted {
+    background-color: var(--stamina-fill-exhausted);
+}
+
+/* Equipped Skills Legend */
+.skills-legend-panel {
+    width: 310px;
+    margin-top: 10px;
+    background-color: rgba(15, 20, 28, 0.72);
+    border-width: 1px;
+    border-color: var(--panel-border);
+    border-radius: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.legend-title {
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--accent-gold);
+    margin: 0;
+    margin-bottom: 6px;
+    padding: 0;
+}
+
+.skills-legend-list {
+    flex-direction: column;
+}
+
+.legend-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.legend-item-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+}
+
+.legend-item-combo {
+    font-size: 12px;
+    color: var(--accent-cyan);
+    margin: 0;
+    padding: 0;
+}
+
+/* Top-Right Quest Tracker */
+.quest-panel {
+    width: 330px;
+    background-color: rgba(14, 20, 30, 0.82);
+    border-width: 1px;
+    border-color: rgba(92, 225, 255, 0.40);
+    border-radius: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-bottom: 12px;
+    transition-property: border-color;
+    transition-duration: 0.2s;
+}
+
+.quest-panel--secret {
+    border-color: var(--accent-gold);
+}
+
+.quest-panel--danger {
+    border-color: var(--accent-warn);
+}
+
+.quest-panel--completed {
+    border-color: var(--accent-green);
+}
+
+.quest-category {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.2px;
+    color: var(--accent-cyan);
+    margin: 0;
+    margin-bottom: 4px;
+    padding: 0;
+}
+
+.quest-category--secret {
+    color: var(--accent-gold);
+}
+
+.quest-category--danger {
+    color: var(--accent-warn);
+}
+
+.quest-category--completed {
+    color: var(--accent-green);
+}
+
+.quest-title {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--text-primary);
+    white-space: normal;
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+}
+
+.quest-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+/* Top-Right Skill Activation Banner (below Quest Tracker) */
+.skill-banner {
+    min-width: 280px;
+    max-width: 400px;
+    background-color: rgba(14, 22, 34, 0.88);
+    border-width: 2px;
+    border-color: var(--accent-gold);
+    border-radius: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 18px;
+    padding-right: 18px;
+    align-items: flex-end;
+    opacity: 1;
+    transition-property: opacity, border-color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.skill-banner--hidden {
+    opacity: 0;
+}
+
+.skill-banner--warning {
+    border-color: var(--accent-warn);
+}
+
+.skill-banner-kicker {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+    color: var(--accent-gold);
+    margin: 0;
+    margin-bottom: 2px;
+    padding: 0;
+}
+
+.skill-banner-kicker--warning {
+    color: var(--accent-warn);
+}
+
+.skill-banner-name {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: var(--text-primary);
+    margin: 0;
+    margin-bottom: 4px;
+    padding: 0;
+}
+
+.skill-banner-detail {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    padding: 0;
+}
+
+/* Bottom-Center Interact Prompt + Combo Buffer */
+.bottom-column {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.interact-prompt {
+    background-color: rgba(14, 20, 30, 0.88);
+    border-width: 1px;
+    border-color: var(--accent-gold);
+    border-radius: 22px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    padding-left: 22px;
+    padding-right: 22px;
+    margin-bottom: 10px;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.14s;
+}
+
+.interact-prompt--hidden {
+    opacity: 0;
+}
+
+.interact-prompt-text {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+}
+
+.combo-buffer-bar {
+    align-self: center;
+    background-color: rgba(12, 18, 28, 0.82);
+    border-width: 1px;
+    border-color: rgba(92, 225, 255, 0.45);
+    border-radius: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.15s;
+}
+
+.combo-buffer-bar--hidden {
+    opacity: 0;
+}
+
+.combo-buffer-text {
+    font-size: 16px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--accent-cyan);
+    margin: 0;
+    padding: 0;
+}

@@ -1,0 +1,109 @@
+:root {
+    --dlg-bg: rgba(14, 19, 28, 0.94);
+    --dlg-border: rgba(245, 196, 81, 0.55);
+    --choice-bg: rgba(28, 39, 56, 0.94);
+    --choice-hover: rgba(45, 65, 94, 0.98);
+    --choice-border: rgba(255, 255, 255, 0.16);
+    --accent-gold: #F5C451;
+    --text-primary: #F4F7FA;
+    --text-secondary: #B8C2CC;
+}
+
+.dialogue-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 34px;
+    padding-left: 24px;
+    padding-right: 24px;
+    display: flex;
+}
+
+.dialogue-overlay--hidden {
+    display: none;
+}
+
+.dialogue-box {
+    width: 780px;
+    max-width: 92%;
+    background-color: var(--dlg-bg);
+    border-width: 2px;
+    border-color: var(--dlg-border);
+    border-radius: 14px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    padding-left: 24px;
+    padding-right: 24px;
+    flex-direction: column;
+}
+
+.dialogue-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.speaker-name {
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--accent-gold);
+    margin: 0;
+    padding: 0;
+}
+
+.dialogue-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    padding: 0;
+}
+
+.dialogue-body {
+    font-size: 16px;
+    color: var(--text-primary);
+    white-space: normal;
+    margin: 0;
+    margin-bottom: 16px;
+    padding: 0;
+}
+
+.choices-container {
+    flex-direction: column;
+}
+
+.dialogue-choice-btn {
+    background-color: var(--choice-bg);
+    color: var(--text-primary);
+    border-width: 1px;
+    border-color: var(--choice-border);
+    border-radius: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    transition-property: background-color, border-color;
+    transition-duration: 0.12s;
+}
+
+.dialogue-choice-btn:hover {
+    background-color: var(--choice-hover);
+    border-color: var(--accent-gold);
+}
+
+.dialogue-choice-btn:active {
+    background-color: rgba(22, 34, 52, 0.98);
+}

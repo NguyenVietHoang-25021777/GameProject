@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="DialoguePanel.uss" />
+    <ui:VisualElement name="dialogue-overlay" class="dialogue-overlay dialogue-overlay--hidden">
+        <ui:VisualElement name="dialogue-box" class="dialogue-box">
+            <ui:VisualElement class="dialogue-header">
+                <ui:Label name="speaker-name" text="ẨN SĨ" class="speaker-name" />
+                <ui:Label text="Chọn câu trả lời bằng chuột" class="dialogue-hint" />
+            </ui:VisualElement>
+
+            <ui:Label name="dialogue-body" text="" class="dialogue-body" />
+
+            <ui:VisualElement name="choices-container" class="choices-container" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82cf4da57ac318440a8a82d3bc1b5e82, type: 3}
+  m_Name: Dialogue_Hermit
+  m_EditorClassIdentifier: Assembly-CSharp::GameProject.Interaction.DialogueData
+  speakerName: "\u1EA8n S\u0129"
+  startNodeId: greeting
+  nodes:
+  - nodeId: greeting
+    speakerOverride: 
+    bodyText: "L\u1EEF kh\xE1ch ph\u01B0\u01A1ng xa... Ta c\u1EA3m nh\u1EADn \u0111\u01B0\u1EE3c lu\u1ED3ng ch\xE2n kh\xED l\u1EA1 trong b\u01B0\u1EDBc ch\xE2n ng\u01B0\u01A1i. Ng\u01B0\u01A1i \u0111\u1EBFn khu ph\u1EBF t\xEDch n\xE0y v\u1EDBi m\u1EE5c \u0111\xEDch g\xEC?"
+    choices:
+    - choiceText: "[Th\xE2n thi\u1EC7n] T\xF4i mu\u1ED1n gi\xFAp \u0111\u1EE1 v\xF9ng \u0111\u1EA5t n\xE0y v\xE0 h\u1ECDc h\u1ECFi th\xEAm v\xF5 c\xF4ng."
+      nextNodeId: friendly_reply
+      conditions:
+      - key: hermit_trust
+        comparison: 0
+        value: 0
+      stateEffects:
+      - key: hermit_trust
+        mutationType: 0
+        value: 1
+      - key: hermit_talked
+        mutationType: 2
+        value: 1
+    - choiceText: "[\u0110e d\u1ECDa] \u0110\u1EEBng nhi\u1EC1u l\u1EDDi! Giao ngay b\xED k\xEDp chi\xEAu th\u1EE9c ra \u0111\xE2y!"
+      nextNodeId: hostile_reply
+      conditions:
+      - key: hermit_trust
+        comparison: 0
+        value: 0
+      stateEffects:
+      - key: hermit_trust
+        mutationType: 0
+        value: -1
+      - key: hermit_talked
+        mutationType: 2
+        value: 1
+    - choiceText: "Ti\u1EC1n b\u1ED1i, B\u1EC7 Th\u01B0\u1EDFng B\xED M\u1EADt n\u1EB1m \u1EDF \u0111\xE2u v\u1EADy?"
+      nextNodeId: friendly_reminder
+      conditions:
+      - key: hermit_trust
+        comparison: 2
+        value: 1
+      - key: secret_skill_unlocked
+        comparison: 5
+        value: 0
+      stateEffects: []
+    - choiceText: "\u0110a t\u1EA1 ti\u1EC1n b\u1ED1i! Chi\xEAu 'Thi\xEAn L\xF4i Tr\u1EA3m' th\u1EADt uy l\u1EF1c."
+      nextNodeId: friendly_done
+      conditions:
+      - key: secret_skill_unlocked
+        comparison: 4
+        value: 1
+      stateEffects: []
+    - choiceText: "Ta \u0111\xE3 quay l\u1EA1i r\u1ED3i \u0111\xE2y..."
+      nextNodeId: hostile_aftermath
+      conditions:
+      - key: hermit_trust
+        comparison: 3
+        value: -1
+      stateEffects: []
+    - choiceText: "T\u1EA1m bi\u1EC7t ti\u1EC1n b\u1ED1i."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: friendly_reply
+    speakerOverride: 
+    bodyText: "T\u1ED1t l\u1EAFm! T\xE2m t\xEDnh ngay th\u1EB3ng th\u1EADt \u0111\xE1ng qu\xFD. Ta v\u1EEBa gi\u1EA3i \u1EA5n B\u1EC7 Th\u01B0\u1EDFng Chi\xEAu Th\u1EE9c m\xE0u v\xE0ng ph\xE1t s\xE1ng ngay b\xEAn c\u1EA1nh \u2014 h\xE3y l\u1EA1i g\u1EA7n nh\u1EA5n [E] \u0111\u1EC3 l\u0129nh ng\u1ED9 tuy\u1EC7t k\u1EF9 m\u1EDBi!"
+    choices:
+    - choiceText: "\u0110a t\u1EA1 ti\u1EC1n b\u1ED1i! T\xF4i s\u1EBD t\u1EDBi ki\u1EC3m tra ngay."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: friendly_reminder
+    speakerOverride: 
+    bodyText: "B\u1EC7 Th\u01B0\u1EDFng m\xE0u v\xE0ng ph\xE1t s\xE1ng \u0111ang hi\u1EC7n ngay s\xE1t b\xEAn tr\xE1i ta. H\xE3y b\u01B0\u1EDBc t\u1EDBi v\xE0 nh\u1EA5n [E] \u0111\u1EC3 nh\u1EADn chi\xEAu th\u1EE9c 'Thi\xEAn L\xF4i Tr\u1EA3m'."
+    choices:
+    - choiceText: "\u0110\xE3 r\xF5, \u0111a t\u1EA1 ti\u1EC1n b\u1ED1i!"
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: friendly_done
+    speakerOverride: 
+    bodyText: "H\xE3y luy\u1EC7n t\u1EADp chu\u1ED7i W \u2192 A \u2192 D \u2192 Space nhu\u1EA7n nhuy\u1EC5n \u0111\u1EC3 \u0111\xE1nh b\u1EA1i l\u0169 qu\xE1i v\u1EADt trong s\xE2n!"
+    choices:
+    - choiceText: "T\xF4i s\u1EBD th\u1EF1c h\xE0nh ngay!"
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: hostile_reply
+    speakerOverride: 
+    bodyText: "H\u1EEB, k\u1EBB cu\u1ED3ng ng\u1EA1o v\xF4 l\u1EC5! H\u1ED9 ph\xE1p \u0111\xE2u \u2014 bao v\xE2y v\xE0 d\u1EA1y cho t\xEAn n\xE0y m\u1ED9t b\xE0i h\u1ECDc!"
+    choices:
+    - choiceText: "Chu\u1EA9n b\u1ECB chi\u1EBFn \u0111\u1EA5u!"
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: hostile_aftermath
+    speakerOverride: 
+    bodyText: "Ta kh\xF4ng c\xF2n g\xEC \u0111\u1EC3 n\xF3i v\u1EDBi k\u1EBB th\xEDch d\xF9ng v\u0169 l\u1EF1c \u0111e d\u1ECDa nh\u01B0 ng\u01B0\u01A1i!"
+    choices:
+    - choiceText: "R\u1EDDi \u0111i."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
