@@ -1,6 +1,8 @@
+using System.Collections;
 using UnityEngine;
 using GameProject.Combat;
 using GameProject.Feedback;
+using GameProject.Interaction;
 using GameProject.Skills;
 using GameProject.Stats;
 using GameProject.World;
@@ -25,11 +27,17 @@ namespace GameProject.Enemies
         [SerializeField] private float maxHealth = 80f;
         [SerializeField] private EnemyHealthBar healthBar;
 
-        [Header("Visual Feedback")]
-        [SerializeField] private MeshRenderer bodyRenderer;
+        [Header("Visual Feedback & Animation")]
+        [SerializeField] private Renderer bodyRenderer;
+        [SerializeField] private Animator enemyAnimator;
         [SerializeField] private Color hitFlashColor = new Color(1.0f, 0.12f, 0.12f, 1.0f);
+        [SerializeField] private Color burnTintColor = new Color(1.0f, 0.45f, 0.10f, 1.0f);
+        [SerializeField] private Color slowTintColor = new Color(0.28f, 0.78f, 1.0f, 1.0f);
         [SerializeField] private float hitFlashDuration = 0.15f;
+        [SerializeField] private float deathAnimationDuration = 1.0f;
         [SerializeField] private bool dropLootOnDeath = true;
+        [Tooltip("Skill Shard prefabs (e.g. Shard_Flame, Shard_Frost) dropped randomly when this enemy dies.")]
+        [SerializeField] private GameObject[] skillShardPrefabs;
 
         [Header("Patrol (No NavMesh Required)")]
         [Tooltip("Optional explicit scene waypoints. If empty, uses patrolLocalOffsets around spawn position.")]
@@ -77,14 +85,31 @@ namespace GameProject.Enemies
         private Color _originalBodyColor = new Color(0.55f, 0.12f, 0.14f, 1f);
         private MaterialPropertyBlock _propBlock;
 
+        private float _burnTimer;
+        private float _burnDps;
+        private float _burnTickTimer;
+        private float _slowTimer;
+        private float _slowSpeedMultiplier = 1f;
+        private bool _isDying;
+        private float _currentMoveSpeed;
+
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
+        private static readonly int AnimSpeedHash = Animator.StringToHash("Speed");
+        private static readonly int AnimAttackHash = Animator.StringToHash("Attack");
+        private static readonly int AnimGetHitHash = Animator.StringToHash("GetHit");
+        private static readonly int AnimDieHash = Animator.StringToHash("Die");
 
-        public bool IsAlive => _currentHealth > 0f;
+        public bool IsAlive => !_isDying && _currentHealth > 0f;
+        public bool IsDying => _isDying;
         public bool IsAmbushEnemy { get; set; }
+        public bool IsBurning => _burnTimer > 0f;
+        public bool IsSlowed => _slowTimer > 0f;
+        public float CurrentSpeedMultiplier => _slowTimer > 0f ? _slowSpeedMultiplier : 1f;
         public float CurrentHealth => _currentHealth;
         public float MaxHealth => maxHealth;
         public EnemyState CurrentState => _state;
+        public Animator EnemyAnimator => enemyAnimator;
 
         public void ForceAggro()
         {
@@ -110,12 +135,26 @@ namespace GameProject.Enemies
                 healthBar = GetComponentInChildren<EnemyHealthBar>();
             }
 
+            if (enemyAnimator == null)
+            {
+                enemyAnimator = GetComponentInChildren<Animator>();
+            }
+
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.applyRootMotion = false;
+            }
+
             if (bodyRenderer == null)
             {
-                Transform bodyTf = transform.Find("Visuals/Body");
-                if (bodyTf != null)
+                bodyRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
+                if (bodyRenderer == null)
                 {
-                    bodyRenderer = bodyTf.GetComponent<MeshRenderer>();
+                    Transform bodyTf = transform.Find("Visuals/Body");
+                    if (bodyTf != null)
+                    {
+                        bodyRenderer = bodyTf.GetComponent<MeshRenderer>();
+                    }
                 }
             }
 
@@ -153,9 +192,45 @@ namespace GameProject.Enemies
                 ResolvePlayer();
             }
 
+            _currentMoveSpeed = 0f;
+            UpdateStatusEffects();
             UpdateHitFlash();
+            if (!IsAlive)
+            {
+                return;
+            }
+
             UpdateStateMachine();
             ApplyGravityAndKnockback();
+            UpdateAnimatorSpeed();
+        }
+
+        public void ApplyBurn(float duration, float damagePerSecond)
+        {
+            if (!IsAlive || duration <= 0f || damagePerSecond <= 0f)
+            {
+                return;
+            }
+
+            _burnTimer = Mathf.Max(_burnTimer, duration);
+            _burnDps = Mathf.Max(_burnDps, damagePerSecond);
+            if (_burnTickTimer <= 0f)
+            {
+                _burnTickTimer = 0.5f;
+            }
+            RefreshBodyTint();
+        }
+
+        public void ApplySlow(float duration, float speedMultiplier)
+        {
+            if (!IsAlive || duration <= 0f)
+            {
+                return;
+            }
+
+            _slowTimer = Mathf.Max(_slowTimer, duration);
+            _slowSpeedMultiplier = Mathf.Clamp(speedMultiplier, 0.1f, 1f);
+            RefreshBodyTint();
         }
 
         public void TakeDamage(float amount, Vector3 knockbackForce)
@@ -186,6 +261,10 @@ namespace GameProject.Enemies
             if (_currentHealth <= 0f)
             {
                 Die();
+            }
+            else if (enemyAnimator != null)
+            {
+                enemyAnimator.SetTrigger(AnimGetHitHash);
             }
         }
 
@@ -343,7 +422,9 @@ namespace GameProject.Enemies
 
             Vector3 dir = toTarget.normalized;
             FaceDirection(dir);
-            _controller.Move(dir * (speed * Time.deltaTime));
+            float effectiveSpeed = speed * CurrentSpeedMultiplier;
+            _currentMoveSpeed = effectiveSpeed;
+            _controller.Move(dir * (effectiveSpeed * Time.deltaTime));
         }
 
         private void FaceTarget(Vector3 worldTarget)
@@ -365,6 +446,11 @@ namespace GameProject.Enemies
         private void PerformAttack()
         {
             _attackCooldownTimer = attackCooldown;
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.SetTrigger(AnimAttackHash);
+            }
+
             SkillVisualEffect.SpawnEnemyAttackFlash(transform);
 
             if (_playerStats != null && _playerStats.IsAlive)
@@ -407,6 +493,52 @@ namespace GameProject.Enemies
             ApplyBodyColor(hitFlashColor);
         }
 
+        private void UpdateStatusEffects()
+        {
+            bool tintNeedsRefresh = false;
+
+            if (_slowTimer > 0f)
+            {
+                _slowTimer = Mathf.Max(0f, _slowTimer - Time.deltaTime);
+                if (_slowTimer <= 0f)
+                {
+                    _slowSpeedMultiplier = 1f;
+                    tintNeedsRefresh = true;
+                }
+            }
+
+            if (_burnTimer > 0f)
+            {
+                _burnTimer = Mathf.Max(0f, _burnTimer - Time.deltaTime);
+                _burnTickTimer -= Time.deltaTime;
+
+                if (_burnTickTimer <= 0f && IsAlive)
+                {
+                    _burnTickTimer = 0.5f;
+                    float burnDamage = _burnDps * 0.5f;
+                    _currentHealth = Mathf.Max(0f, _currentHealth - burnDamage);
+                    healthBar?.SetNormalizedHealth(_currentHealth / maxHealth);
+                    TriggerHitFlash();
+
+                    if (_currentHealth <= 0f)
+                    {
+                        Die();
+                        return;
+                    }
+                }
+
+                if (_burnTimer <= 0f)
+                {
+                    tintNeedsRefresh = true;
+                }
+            }
+
+            if (tintNeedsRefresh && _hitFlashTimer <= 0f)
+            {
+                RefreshBodyTint();
+            }
+        }
+
         private void UpdateHitFlash()
         {
             if (_hitFlashTimer <= 0f)
@@ -416,6 +548,26 @@ namespace GameProject.Enemies
 
             _hitFlashTimer -= Time.deltaTime;
             if (_hitFlashTimer <= 0f)
+            {
+                RefreshBodyTint();
+            }
+        }
+
+        private void RefreshBodyTint()
+        {
+            if (_hitFlashTimer > 0f)
+            {
+                ApplyBodyColor(hitFlashColor);
+            }
+            else if (_slowTimer > 0f)
+            {
+                ApplyBodyColor(slowTintColor);
+            }
+            else if (_burnTimer > 0f)
+            {
+                ApplyBodyColor(burnTintColor);
+            }
+            else
             {
                 ApplyBodyColor(_originalBodyColor);
             }
@@ -434,9 +586,56 @@ namespace GameProject.Enemies
             bodyRenderer.SetPropertyBlock(_propBlock);
         }
 
+        private void UpdateAnimatorSpeed()
+        {
+            if (enemyAnimator == null)
+            {
+                return;
+            }
+
+            float normalized = chaseSpeed > 0.01f ? Mathf.Clamp01(_currentMoveSpeed / chaseSpeed) : 0f;
+            enemyAnimator.SetFloat(AnimSpeedHash, normalized, 0.1f, Time.deltaTime);
+        }
+
         private void Die()
         {
-            WorldStateManager worldState = FindAnyObjectByType<WorldStateManager>();
+            if (_isDying)
+            {
+                return;
+            }
+
+            _isDying = true;
+            _burnTimer = 0f;
+            _slowTimer = 0f;
+            _currentMoveSpeed = 0f;
+
+            if (_controller != null)
+            {
+                _controller.enabled = false;
+            }
+
+            if (healthBar != null)
+            {
+                healthBar.gameObject.SetActive(false);
+            }
+
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.SetFloat(AnimSpeedHash, 0f);
+                enemyAnimator.SetTrigger(AnimDieHash);
+            }
+
+            StartCoroutine(DeathSequenceRoutine());
+        }
+
+        private IEnumerator DeathSequenceRoutine()
+        {
+            if (deathAnimationDuration > 0f)
+            {
+                yield return new WaitForSeconds(deathAnimationDuration);
+            }
+
+            WorldStateManager worldState = WorldStateManager.Resolve();
             if (worldState != null)
             {
                 worldState.IncrementInt("enemies_defeated", 1);
@@ -450,10 +649,59 @@ namespace GameProject.Enemies
 
             if (dropLootOnDeath)
             {
-                EnemyLootDrop.Spawn(transform.position);
+                SpawnDeathDrop();
             }
 
             Destroy(gameObject);
+        }
+
+        private void SpawnDeathDrop()
+        {
+            if (skillShardPrefabs != null && skillShardPrefabs.Length > 0)
+            {
+                GameObject chosenPrefab = PickShardPrefab();
+                if (chosenPrefab != null)
+                {
+                    Vector3 spawnPos = transform.position + Vector3.up * 0.6f;
+                    GameObject shardObj = Instantiate(chosenPrefab, spawnPos, Quaternion.identity);
+                    SkillShardPickup pickup = shardObj.GetComponent<SkillShardPickup>();
+                    if (pickup != null)
+                    {
+                        pickup.LaunchHop(transform.position.y);
+                    }
+                    return;
+                }
+            }
+
+            EnemyLootDrop.Spawn(transform.position);
+        }
+
+        private GameObject PickShardPrefab()
+        {
+            MovementComboDetector detector = FindAnyObjectByType<MovementComboDetector>();
+
+            // Prefer dropping a shard whose effect is still locked so players unlock new elements cleanly
+            if (detector != null)
+            {
+                var lockedCandidates = new System.Collections.Generic.List<GameObject>();
+                for (int i = 0; i < skillShardPrefabs.Length; i++)
+                {
+                    GameObject candidate = skillShardPrefabs[i];
+                    if (candidate == null) continue;
+                    SkillShardPickup pickup = candidate.GetComponent<SkillShardPickup>();
+                    if (pickup != null && !detector.IsEffectUnlocked(pickup.EffectToUnlock))
+                    {
+                        lockedCandidates.Add(candidate);
+                    }
+                }
+
+                if (lockedCandidates.Count > 0)
+                {
+                    return lockedCandidates[Random.Range(0, lockedCandidates.Count)];
+                }
+            }
+
+            return skillShardPrefabs[Random.Range(0, skillShardPrefabs.Length)];
         }
 
         private static float HorizontalDistance(Vector3 a, Vector3 b)

@@ -52,6 +52,8 @@
                             <ui:Toggle name="toggle-shockwave" label="Sóng xung kích (AreaShockwave)" class="effect-toggle" />
                             <ui:Toggle name="toggle-leap" label="Bật nhảy cao (HighLeap)" class="effect-toggle" />
                             <ui:Toggle name="toggle-heal" label="Hồi HP +30 (HealBurst)" class="effect-toggle" />
+                            <ui:Toggle name="toggle-flame" label="FlameNova — Nhặt Mảnh Kỹ Năng từ quái để mở khóa" class="effect-toggle effect-toggle--locked" />
+                            <ui:Toggle name="toggle-frost" label="FrostSlow — Nhặt Mảnh Kỹ Năng từ quái để mở khóa" class="effect-toggle effect-toggle--locked" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>

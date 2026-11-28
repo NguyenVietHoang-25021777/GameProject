@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="PauseMenu.uss" />
+    <ui:VisualElement name="pause-overlay" class="pause-overlay pause-overlay--hidden">
+        <ui:VisualElement class="pause-card">
+            <ui:Label text="TẠM DỪNG" class="pause-title" />
+            <ui:Label text="Nhấn ESC hoặc Tiếp tục để quay lại trò chơi" class="pause-subtitle" />
+
+            <ui:VisualElement class="pause-divider" />
+
+            <ui:Label name="pause-status-label" text="" class="pause-status pause-status--hidden" />
+
+            <ui:VisualElement class="pause-buttons">
+                <ui:Button name="btn-resume" text="Tiếp tục" class="pause-btn pause-btn--primary" />
+                <ui:Button name="btn-save" text="Lưu game" class="pause-btn" />
+                <ui:Button name="btn-main-menu" text="Về Main Menu" class="pause-btn" />
+                <ui:Button name="btn-quit" text="Thoát" class="pause-btn pause-btn--danger" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

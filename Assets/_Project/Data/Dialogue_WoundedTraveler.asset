@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82cf4da57ac318440a8a82d3bc1b5e82, type: 3}
+  m_Name: Dialogue_WoundedTraveler
+  m_EditorClassIdentifier: Assembly-CSharp::GameProject.Interaction.DialogueData
+  speakerName: "L\u1EEF Kh\xE1ch B\u1ECB Th\u01B0\u01A1ng (WoundedTraveler)"
+  startNodeId: greeting
+  nodes:
+  - nodeId: greeting
+    speakerOverride: 
+    bodyText: "\u01AF... l\xE0m \u01A1n c\u1EE9u t\xF4i v\u1EDBi! Con qu\xE1i Tinh Anh g\u1EA7n \u0111\xE2y \u0111\xE3 ph\u1EE5c k\xEDch t\xF4i khi t\xF4i \u0111ang mang c\u1ED5 th\u01B0 t\u1EEB Di T\xEDch C\u1ED5 \u0110\u1EA1i v\u1EC1..."
+    choices:
+    - choiceText: "[C\u1EE9u gi\xFAp] B\u0103ng b\xF3 v\u1EBFt th\u01B0\u01A1ng v\xE0 chia s\u1EBB d\u01B0\u1EE3c th\u1EA3o cho anh ta."
+      nextNodeId: saved
+      conditions:
+      - key: traveler_saved
+        comparison: 1
+        value: 1
+      - key: traveler_robbed
+        comparison: 1
+        value: 1
+      stateEffects:
+      - key: traveler_saved
+        mutationType: 0
+        value: 1
+      - key: traveler_saved
+        mutationType: 2
+        value: 1
+      - key: traveler_robbed
+        mutationType: 0
+        value: 0
+      - key: traveler_robbed
+        mutationType: 3
+        value: 0
+    - choiceText: "[C\u01B0\u1EDBp b\xF3c] L\u1EE5c l\u1EA5y t\xFAi h\xE0nh l\xFD c\u1EE7a anh ta r\u1ED3i b\u1ECF \u0111i."
+      nextNodeId: robbed
+      conditions:
+      - key: traveler_saved
+        comparison: 1
+        value: 1
+      - key: traveler_robbed
+        comparison: 1
+        value: 1
+      stateEffects:
+      - key: traveler_robbed
+        mutationType: 0
+        value: 1
+      - key: traveler_robbed
+        mutationType: 2
+        value: 1
+      - key: traveler_saved
+        mutationType: 0
+        value: 0
+      - key: traveler_saved
+        mutationType: 3
+        value: 0
+    - choiceText: "Anh \u0111\xE3 \u0111\u1EE1 h\u01A1n ch\u01B0a? Nh\u1EAFc l\u1EA1i v\u1ECB tr\xED B\u1EC7 B\xED K\xEDp \u1EA8n gi\xFAp t\xF4i."
+      nextNodeId: saved
+      conditions:
+      - key: traveler_saved
+        comparison: 0
+        value: 1
+      stateEffects: []
+    - choiceText: "Nh\xECn L\u1EEF Kh\xE1ch..."
+      nextNodeId: robbed
+      conditions:
+      - key: traveler_robbed
+        comparison: 0
+        value: 1
+      stateEffects: []
+    - choiceText: "R\u1EDDi \u0111i."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: saved
+    speakerOverride: 
+    bodyText: "\u0110\u1ED9i \u01A1n v\u1ECB anh h\xF9ng \u0111\xE3 c\u1EE9u m\u1EA1ng! (traveler_saved = 1). T\xF4i v\u1EEBa gi\u1EA3i phong \u1EA5n: khi c\u1EADu b\u01B0\u1EDBc v\xE0o Di T\xEDch C\u1ED5 \u0110\u1EA1i ph\xEDa B\u1EAFc, B\u1EC7 B\xED K\xEDp \u1EA8n m\xE0u v\xE0ng s\u1EBD hi\u1EC7n ra b\xEAn c\xE1nh tr\xE1i \u0111i\u1EC7n th\u1EDD!"
+    choices:
+    - choiceText: "T\xF4i s\u1EBD t\u1EDBi Di T\xEDch C\u1ED5 \u0110\u1EA1i ngay!"
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: robbed
+    speakerOverride: 
+    bodyText: "\u0110\u1ED3 nh\u1EABn t\xE2m... ng\u01B0\u01A1i c\u01B0\u1EDBp tr\u1EAFng m\u1ED9t k\u1EBB \u0111ang b\u1ECB th\u01B0\u01A1ng! (traveler_robbed = 1). Phong \u1EA5n B\u1EC7 B\xED K\xEDp \u1EA8n trong Di T\xEDch C\u1ED5 \u0110\u1EA1i s\u1EBD m\xE3i \u0111\xF3ng k\xEDn tr\u01B0\u1EDBc m\u1EB7t ng\u01B0\u01A1i!"
+    choices:
+    - choiceText: "B\u1ECF \u0111i."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []

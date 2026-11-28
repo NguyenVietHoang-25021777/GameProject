@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="MainMenu.uss" />
+    <ui:VisualElement name="main-menu-root" class="main-menu-root">
+        <ui:VisualElement class="main-menu-card">
+            <ui:Label text="HÀNH TRÌNH CỔ NGỮ" class="menu-kicker" />
+            <ui:Label name="game-title" text="BIÊN NIÊN SỬ DI TÍCH" class="game-title" />
+            <ui:Label text="Nhập vai Phiêu lưu 3D  •  Sáng tạo Chiêu thức" class="game-subtitle" />
+
+            <ui:VisualElement class="menu-divider" />
+
+            <ui:VisualElement class="menu-buttons">
+                <ui:Button name="btn-new-game" text="Chơi mới" class="menu-btn menu-btn--primary" />
+                <ui:Button name="btn-continue" text="Tiếp tục" class="menu-btn" />
+                <ui:Button name="btn-quit" text="Thoát" class="menu-btn menu-btn--danger" />
+            </ui:VisualElement>
+
+            <ui:Label name="save-status-label" text="Chưa có dữ liệu lưu" class="save-status-label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -21,6 +21,19 @@ namespace GameProject.Interaction
         [SerializeField] private string rewardSkillName = "Thiên Lôi Trảm";
         [SerializeField] private float rewardStaminaCost = 30f;
         [SerializeField] private float rewardCooldown = 2.5f;
+        [SerializeField] private string unlockedFlagKey = "secret_skill_unlocked";
+        [SerializeField] private MoveStep[] rewardSteps = new[]
+        {
+            MoveStep.Forward,
+            MoveStep.Left,
+            MoveStep.Right,
+            MoveStep.Jump
+        };
+        [SerializeField] private SkillEffectType[] rewardEffects = new[]
+        {
+            SkillEffectType.HighLeap,
+            SkillEffectType.AreaShockwave
+        };
 
         private bool _claimed;
         private Vector3 _crystalBaseLocalPos;
@@ -66,8 +79,12 @@ namespace GameProject.Interaction
 
             CustomSkillData secretSkill = new CustomSkillData(
                 rewardSkillName,
-                new[] { MoveStep.Forward, MoveStep.Left, MoveStep.Right, MoveStep.Jump },
-                new[] { SkillEffectType.HighLeap, SkillEffectType.AreaShockwave },
+                rewardSteps != null && rewardSteps.Length >= 3
+                    ? rewardSteps
+                    : new[] { MoveStep.Forward, MoveStep.Left, MoveStep.Right, MoveStep.Jump },
+                rewardEffects != null && rewardEffects.Length > 0
+                    ? rewardEffects
+                    : new[] { SkillEffectType.HighLeap, SkillEffectType.AreaShockwave },
                 rewardStaminaCost,
                 rewardCooldown);
 
@@ -76,10 +93,11 @@ namespace GameProject.Interaction
                 detector.AddOrUpdateSkill(secretSkill);
             }
 
-            WorldStateManager worldState = FindAnyObjectByType<WorldStateManager>();
-            if (worldState != null)
+            WorldStateManager worldState = WorldStateManager.Resolve();
+            if (worldState != null && !string.IsNullOrWhiteSpace(unlockedFlagKey))
             {
-                worldState.SetFlag("secret_skill_unlocked", true);
+                worldState.SetFlag(unlockedFlagKey, true);
+                worldState.SetInt(unlockedFlagKey, 1);
             }
 
             HudController hud = FindAnyObjectByType<HudController>();

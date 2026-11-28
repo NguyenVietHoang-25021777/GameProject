@@ -41,6 +41,7 @@ namespace GameProject.UI
         private bool _isOpen;
 
         public bool IsOpen => _isOpen;
+        public int LastClosedFrame { get; private set; } = -1;
         public VisualElement Root => _uiDocument != null ? _uiDocument.rootVisualElement : null;
         public IReadOnlyList<DialogueChoice> VisibleChoices => _visibleChoices;
 
@@ -83,7 +84,7 @@ namespace GameProject.UI
             }
 
             ResolveReferences();
-            if (_overlay == null)
+            if (_overlay == null || _choicesContainer == null)
             {
                 CacheUiElements();
             }
@@ -167,10 +168,10 @@ namespace GameProject.UI
 
             if (_choicesContainer == null)
             {
-                return;
+                CacheUiElements();
             }
 
-            _choicesContainer.Clear();
+            _choicesContainer?.Clear();
 
             if (node.choices != null)
             {
@@ -188,14 +189,17 @@ namespace GameProject.UI
                     int choiceIndex = _visibleChoices.Count;
                     _visibleChoices.Add(choice);
 
-                    Button btn = new Button(() => SelectChoice(choiceIndex));
-                    btn.text = choice.choiceText;
-                    btn.AddToClassList("dialogue-choice-btn");
-                    _choicesContainer.Add(btn);
+                    if (_choicesContainer != null)
+                    {
+                        Button btn = new Button(() => SelectChoice(choiceIndex));
+                        btn.text = choice.choiceText;
+                        btn.AddToClassList("dialogue-choice-btn");
+                        _choicesContainer.Add(btn);
+                    }
                 }
             }
 
-            if (_visibleChoices.Count == 0)
+            if (_visibleChoices.Count == 0 && _choicesContainer != null)
             {
                 Button closeBtn = new Button(CloseDialogue);
                 closeBtn.text = "Kết thúc trò chuyện";
@@ -236,6 +240,7 @@ namespace GameProject.UI
         {
             if (_isOpen)
             {
+                LastClosedFrame = Time.frameCount;
                 CloseDialogue();
             }
         }
@@ -253,6 +258,10 @@ namespace GameProject.UI
                 return;
             }
 
+            root.pickingMode = PickingMode.Ignore;
+
+            root.pickingMode = PickingMode.Ignore;
+
             _overlay = root.Q<VisualElement>("dialogue-overlay");
             _speakerLabel = root.Q<Label>("speaker-name");
             _bodyLabel = root.Q<Label>("dialogue-body");
@@ -261,7 +270,7 @@ namespace GameProject.UI
 
         private void ResolveReferences()
         {
-            if (worldState == null) worldState = FindAnyObjectByType<WorldStateManager>();
+            worldState = WorldStateManager.Resolve();
             if (playerController == null) playerController = FindAnyObjectByType<ThirdPersonPlayerController>();
             if (cameraController == null) cameraController = FindAnyObjectByType<ThirdPersonCameraController>();
             if (comboDetector == null) comboDetector = FindAnyObjectByType<MovementComboDetector>();

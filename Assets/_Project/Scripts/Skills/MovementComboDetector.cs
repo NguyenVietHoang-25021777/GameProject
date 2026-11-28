@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using GameProject.Combat;
+using GameProject.Enemies;
 using GameProject.Feedback;
 using GameProject.Player;
 using GameProject.Stats;
@@ -44,6 +45,23 @@ namespace GameProject.Skills
         [SerializeField] private float shockwaveForce = 10.0f;
         [SerializeField] private float highLeapVelocity = 13.5f;
         [SerializeField] private float healBurstAmount = 30.0f;
+        [SerializeField] private float flameNovaRadius = 4.8f;
+        [SerializeField] private float flameNovaDamage = 28.0f;
+        [SerializeField] private float flameBurnDuration = 3.0f;
+        [SerializeField] private float flameBurnDps = 8.0f;
+        [SerializeField] private float frostSlowRadius = 5.0f;
+        [SerializeField] private float frostSlowDamage = 15.0f;
+        [SerializeField] private float frostSlowDuration = 3.0f;
+        [SerializeField] private float frostSpeedMultiplier = 0.5f;
+
+        [Header("Unlocked Effects")]
+        [SerializeField] private List<SkillEffectType> unlockedEffects = new List<SkillEffectType>
+        {
+            SkillEffectType.ForwardLunge,
+            SkillEffectType.AreaShockwave,
+            SkillEffectType.HighLeap,
+            SkillEffectType.HealBurst
+        };
 
         [Header("Equipped Skills")]
         [SerializeField] private List<CustomSkillData> equippedSkills = new List<CustomSkillData>();
@@ -53,6 +71,7 @@ namespace GameProject.Skills
         private readonly Dictionary<CustomSkillData, float> _cooldownReadyTimes = new Dictionary<CustomSkillData, float>();
         private readonly HashSet<IDamageable> _lungeHitTargets = new HashSet<IDamageable>();
         private readonly HashSet<IDamageable> _shockwaveHitTargets = new HashSet<IDamageable>();
+        private readonly HashSet<IDamageable> _aoeHitTargets = new HashSet<IDamageable>();
         private float _activeLungeTimer;
 
         private InputAction _forwardAction;
@@ -64,12 +83,15 @@ namespace GameProject.Skills
 
         public bool InputLocked { get; set; }
         public IReadOnlyList<CustomSkillData> EquippedSkills => equippedSkills;
+        public IReadOnlyList<SkillEffectType> UnlockedEffects => unlockedEffects;
         public IReadOnlyList<MoveStep> CurrentBuffer => _publicBuffer;
 
         public event Action<CustomSkillData> OnSkillActivated;
         public event Action<CustomSkillData, string> OnSkillFailed;
         public event Action<IReadOnlyList<MoveStep>> OnComboBufferChanged;
         public event Action<IReadOnlyList<CustomSkillData>> OnSkillsListChanged;
+        public event Action<SkillEffectType> OnEffectUnlocked;
+        public event Action<IReadOnlyList<SkillEffectType>> OnUnlockedEffectsChanged;
 
         private void Awake()
         {
@@ -83,6 +105,7 @@ namespace GameProject.Skills
                 playerController = GetComponent<ThirdPersonPlayerController>();
             }
 
+            EnsureDefaultUnlockedEffects();
             EnsureDefaultSkills();
             InitializeStepActions();
         }
@@ -227,6 +250,63 @@ namespace GameProject.Skills
 
             _cooldownReadyTimes.Clear();
             OnSkillsListChanged?.Invoke(equippedSkills);
+        }
+
+        public bool IsEffectUnlocked(SkillEffectType effect)
+        {
+            return unlockedEffects != null && unlockedEffects.Contains(effect);
+        }
+
+        public bool UnlockEffect(SkillEffectType effect)
+        {
+            EnsureDefaultUnlockedEffects();
+            if (unlockedEffects.Contains(effect))
+            {
+                return false;
+            }
+
+            unlockedEffects.Add(effect);
+            OnEffectUnlocked?.Invoke(effect);
+            OnUnlockedEffectsChanged?.Invoke(unlockedEffects);
+            return true;
+        }
+
+        public List<SkillEffectType> ExportUnlockedEffectsCopy()
+        {
+            EnsureDefaultUnlockedEffects();
+            return new List<SkillEffectType>(unlockedEffects);
+        }
+
+        public void ImportUnlockedEffects(List<SkillEffectType> effects)
+        {
+            unlockedEffects = new List<SkillEffectType>();
+            EnsureDefaultUnlockedEffects();
+
+            if (effects != null)
+            {
+                for (int i = 0; i < effects.Count; i++)
+                {
+                    if (!unlockedEffects.Contains(effects[i]))
+                    {
+                        unlockedEffects.Add(effects[i]);
+                    }
+                }
+            }
+
+            OnUnlockedEffectsChanged?.Invoke(unlockedEffects);
+        }
+
+        private void EnsureDefaultUnlockedEffects()
+        {
+            if (unlockedEffects == null)
+            {
+                unlockedEffects = new List<SkillEffectType>();
+            }
+
+            if (!unlockedEffects.Contains(SkillEffectType.ForwardLunge)) unlockedEffects.Add(SkillEffectType.ForwardLunge);
+            if (!unlockedEffects.Contains(SkillEffectType.AreaShockwave)) unlockedEffects.Add(SkillEffectType.AreaShockwave);
+            if (!unlockedEffects.Contains(SkillEffectType.HighLeap)) unlockedEffects.Add(SkillEffectType.HighLeap);
+            if (!unlockedEffects.Contains(SkillEffectType.HealBurst)) unlockedEffects.Add(SkillEffectType.HealBurst);
         }
 
         private void EnsureDefaultSkills()
@@ -445,6 +525,12 @@ namespace GameProject.Skills
                     case SkillEffectType.HealBurst:
                         ExecuteHealBurst();
                         break;
+                    case SkillEffectType.FlameNova:
+                        ExecuteFlameNova();
+                        break;
+                    case SkillEffectType.FrostSlow:
+                        ExecuteFrostSlow();
+                        break;
                 }
             }
         }
@@ -597,6 +683,84 @@ namespace GameProject.Skills
 
             AudioFeedbackManager audio = FindAnyObjectByType<AudioFeedbackManager>();
             audio?.PlayHeal();
+        }
+
+        private void ExecuteFlameNova()
+        {
+            Vector3 origin = transform.position;
+            SkillVisualEffect.SpawnFlameNova(origin, flameNovaRadius);
+
+            AudioFeedbackManager audio = FindAnyObjectByType<AudioFeedbackManager>();
+            audio?.PlayFlameNova();
+
+            CameraShake shake = FindAnyObjectByType<CameraShake>();
+            shake?.Shake(0.18f, 0.14f);
+
+            _aoeHitTargets.Clear();
+            Collider[] hits = Physics.OverlapSphere(origin + Vector3.up * 0.5f, flameNovaRadius, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Transform hitTransform = hits[i].transform;
+                if (hitTransform == transform || hitTransform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                IDamageable damageable = hitTransform.GetComponentInParent<IDamageable>();
+                if (damageable != null && damageable.IsAlive && _aoeHitTargets.Add(damageable))
+                {
+                    Vector3 pushDir = hitTransform.position - origin;
+                    pushDir.y = 0f;
+                    pushDir = pushDir.sqrMagnitude > 0.001f ? pushDir.normalized : transform.forward;
+
+                    damageable.TakeDamage(flameNovaDamage, pushDir * 7.5f + Vector3.up * 2.0f);
+
+                    EnemyController enemy = hitTransform.GetComponentInParent<EnemyController>();
+                    if (enemy != null && enemy.IsAlive)
+                    {
+                        enemy.ApplyBurn(flameBurnDuration, flameBurnDps);
+                    }
+                }
+            }
+        }
+
+        private void ExecuteFrostSlow()
+        {
+            Vector3 origin = transform.position;
+            SkillVisualEffect.SpawnFrostSlow(origin, frostSlowRadius);
+
+            AudioFeedbackManager audio = FindAnyObjectByType<AudioFeedbackManager>();
+            audio?.PlayFrostSlow();
+
+            CameraShake shake = FindAnyObjectByType<CameraShake>();
+            shake?.Shake(0.14f, 0.10f);
+
+            _aoeHitTargets.Clear();
+            Collider[] hits = Physics.OverlapSphere(origin + Vector3.up * 0.5f, frostSlowRadius, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Transform hitTransform = hits[i].transform;
+                if (hitTransform == transform || hitTransform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                IDamageable damageable = hitTransform.GetComponentInParent<IDamageable>();
+                if (damageable != null && damageable.IsAlive && _aoeHitTargets.Add(damageable))
+                {
+                    Vector3 pushDir = hitTransform.position - origin;
+                    pushDir.y = 0f;
+                    pushDir = pushDir.sqrMagnitude > 0.001f ? pushDir.normalized : transform.forward;
+
+                    damageable.TakeDamage(frostSlowDamage, pushDir * 4.0f);
+
+                    EnemyController enemy = hitTransform.GetComponentInParent<EnemyController>();
+                    if (enemy != null && enemy.IsAlive)
+                    {
+                        enemy.ApplySlow(frostSlowDuration, frostSpeedMultiplier);
+                    }
+                }
+            }
         }
     }
 }

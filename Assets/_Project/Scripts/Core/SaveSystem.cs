@@ -18,6 +18,7 @@ namespace GameProject.Core
         public float currentHealth = 100f;
         public float currentStamina = 100f;
         public List<CustomSkillData> equippedSkills = new List<CustomSkillData>();
+        public List<SkillEffectType> unlockedEffects = new List<SkillEffectType>();
         public List<IntStateEntry> worldIntStates = new List<IntStateEntry>();
         public List<string> worldFlags = new List<string>();
     }
@@ -50,6 +51,7 @@ namespace GameProject.Core
             {
                 if (all[i] != this && all[i]._isPersistentInstance)
                 {
+                    gameObject.SetActive(false);
                     Destroy(gameObject);
                     return;
                 }
@@ -114,12 +116,124 @@ namespace GameProject.Core
 
         private void OnQuickSavePerformed(InputAction.CallbackContext ctx)
         {
+            if (SceneManager.GetActiveScene().name == "MainMenu")
+            {
+                return;
+            }
+
             SaveGame(showNotification: true);
         }
 
         private void OnQuickLoadPerformed(InputAction.CallbackContext ctx)
         {
+            if (SceneManager.GetActiveScene().name == "MainMenu")
+            {
+                return;
+            }
+
             LoadGame(showNotification: true);
+        }
+
+        public bool HasValidSaveFile()
+        {
+            return HasValidSaveFile(out _);
+        }
+
+        public bool HasValidSaveFile(out string savedSceneName)
+        {
+            savedSceneName = null;
+            if (!File.Exists(SaveFilePath))
+            {
+                return false;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(SaveFilePath);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return false;
+                }
+
+                GameSaveData data = JsonUtility.FromJson<GameSaveData>(json);
+                if (data == null || string.IsNullOrWhiteSpace(data.sceneName) || data.sceneName == "MainMenu")
+                {
+                    return false;
+                }
+
+                if (!Application.CanStreamedLevelBeLoaded(data.sceneName))
+                {
+                    return false;
+                }
+
+                savedSceneName = data.sceneName;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool DeleteSaveFile()
+        {
+            _pendingSceneRestore = null;
+            _pendingToastTitle = null;
+            _pendingToastDetail = null;
+
+            try
+            {
+                if (File.Exists(SaveFilePath))
+                {
+                    File.Delete(SaveFilePath);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveSystem] Failed to delete save file: {ex.Message}");
+                return false;
+            }
+        }
+
+        public void StartNewGame(string preferredStartScene = "Zone_Village", string fallbackStartScene = "Sandbox_Test")
+        {
+            DeleteSaveFile();
+
+            WorldStateManager worldState = WorldStateManager.Resolve();
+            if (worldState != null)
+            {
+                worldState.ResetState();
+            }
+
+            Time.timeScale = 1f;
+
+            string targetScene = preferredStartScene;
+            if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
+            {
+                targetScene = fallbackStartScene;
+            }
+
+            if (!string.IsNullOrWhiteSpace(targetScene) && Application.CanStreamedLevelBeLoaded(targetScene))
+            {
+                SceneManager.LoadScene(targetScene);
+            }
+            else
+            {
+                Debug.LogError($"[SaveSystem] Cannot start new game: neither '{preferredStartScene}' nor '{fallbackStartScene}' is in Build Settings.");
+            }
+        }
+
+        public bool ContinueSavedGame()
+        {
+            if (!HasValidSaveFile())
+            {
+                return false;
+            }
+
+            Time.timeScale = 1f;
+            return LoadGame(showNotification: true);
         }
 
         /// <summary>
@@ -267,9 +381,10 @@ namespace GameProject.Core
             if (detector != null)
             {
                 data.equippedSkills = detector.ExportSkillsCopy();
+                data.unlockedEffects = detector.ExportUnlockedEffectsCopy();
             }
 
-            WorldStateManager worldState = FindAnyObjectByType<WorldStateManager>();
+            WorldStateManager worldState = WorldStateManager.Resolve();
             if (worldState != null)
             {
                 worldState.ExportState(out data.worldIntStates, out data.worldFlags);
@@ -292,12 +407,20 @@ namespace GameProject.Core
             }
 
             MovementComboDetector detector = FindAnyObjectByType<MovementComboDetector>();
-            if (detector != null && data.equippedSkills != null && data.equippedSkills.Count > 0)
+            if (detector != null)
             {
-                detector.ImportSkills(data.equippedSkills);
+                if (data.unlockedEffects != null && data.unlockedEffects.Count > 0)
+                {
+                    detector.ImportUnlockedEffects(data.unlockedEffects);
+                }
+
+                if (data.equippedSkills != null && data.equippedSkills.Count > 0)
+                {
+                    detector.ImportSkills(data.equippedSkills);
+                }
             }
 
-            WorldStateManager worldState = FindAnyObjectByType<WorldStateManager>();
+            WorldStateManager worldState = WorldStateManager.Resolve();
             if (worldState != null)
             {
                 worldState.ImportState(data.worldIntStates, data.worldFlags, notifyListeners: true);

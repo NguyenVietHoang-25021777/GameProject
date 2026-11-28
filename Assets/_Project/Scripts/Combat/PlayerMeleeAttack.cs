@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -24,6 +25,7 @@ namespace GameProject.Combat
         private readonly HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
 
         public bool InputLocked { get; set; }
+        public event Action OnAttackPerformed;
 
         private void Awake()
         {
@@ -34,7 +36,7 @@ namespace GameProject.Combat
         {
             if (_attackAction != null)
             {
-                _attackAction.performed += OnAttackPerformed;
+                _attackAction.performed += HandleAttackInput;
                 _attackAction.Enable();
             }
         }
@@ -43,7 +45,7 @@ namespace GameProject.Combat
         {
             if (_attackAction != null)
             {
-                _attackAction.performed -= OnAttackPerformed;
+                _attackAction.performed -= HandleAttackInput;
                 _attackAction.Disable();
             }
         }
@@ -53,7 +55,7 @@ namespace GameProject.Combat
             _attackAction?.Dispose();
         }
 
-        private void OnAttackPerformed(InputAction.CallbackContext ctx)
+        private void HandleAttackInput(InputAction.CallbackContext ctx)
         {
             if (InputLocked || Cursor.lockState != CursorLockMode.Locked)
             {
@@ -75,6 +77,7 @@ namespace GameProject.Combat
             }
 
             _nextAttackTime = Time.time + attackCooldown;
+            OnAttackPerformed?.Invoke();
             SkillVisualEffect.SpawnMeleeSlash(transform);
 
             AudioFeedbackManager audio = FindAnyObjectByType<AudioFeedbackManager>();

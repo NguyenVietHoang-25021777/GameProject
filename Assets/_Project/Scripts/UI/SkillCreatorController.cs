@@ -41,6 +41,8 @@ namespace GameProject.UI
         private Toggle _toggleShockwave;
         private Toggle _toggleLeap;
         private Toggle _toggleHeal;
+        private Toggle _toggleFlame;
+        private Toggle _toggleFrost;
 
         private Button _btnClose;
         private Button _btnUndoStep;
@@ -62,6 +64,7 @@ namespace GameProject.UI
 
         public bool IsOpen => _isOpen;
         public bool ExternalLock { get; set; }
+        public int LastClosedFrame { get; private set; } = -1;
         public VisualElement Root => _uiDocument != null ? _uiDocument.rootVisualElement : null;
 
         private void Awake()
@@ -84,8 +87,10 @@ namespace GameProject.UI
             if (comboDetector != null)
             {
                 comboDetector.OnSkillsListChanged += RefreshEquippedList;
+                comboDetector.OnUnlockedEffectsChanged += HandleUnlockedEffectsChanged;
             }
 
+            RefreshEffectUnlockStates();
             SetOpen(false);
         }
 
@@ -108,6 +113,7 @@ namespace GameProject.UI
             if (comboDetector != null)
             {
                 comboDetector.OnSkillsListChanged -= RefreshEquippedList;
+                comboDetector.OnUnlockedEffectsChanged -= HandleUnlockedEffectsChanged;
             }
         }
 
@@ -152,6 +158,7 @@ namespace GameProject.UI
                 if (_isOpen)
                 {
                     comboDetector.ClearBuffer();
+                    RefreshEffectUnlockStates();
                     RefreshEquippedList(comboDetector.EquippedSkills);
                 }
             }
@@ -210,6 +217,7 @@ namespace GameProject.UI
         {
             if (_isOpen)
             {
+                LastClosedFrame = Time.frameCount;
                 SetOpen(false);
             }
         }
@@ -229,6 +237,10 @@ namespace GameProject.UI
                 return;
             }
 
+            root.pickingMode = PickingMode.Ignore;
+
+            root.pickingMode = PickingMode.Ignore;
+
             _overlay = root.Q<VisualElement>("creator-overlay");
             _nameInput = root.Q<TextField>("skill-name-input");
             _stepPreviewLabel = root.Q<Label>("step-preview-label");
@@ -240,6 +252,8 @@ namespace GameProject.UI
             _toggleShockwave = root.Q<Toggle>("toggle-shockwave");
             _toggleLeap = root.Q<Toggle>("toggle-leap");
             _toggleHeal = root.Q<Toggle>("toggle-heal");
+            _toggleFlame = root.Q<Toggle>("toggle-flame");
+            _toggleFrost = root.Q<Toggle>("toggle-frost");
 
             _btnClose = root.Q<Button>("btn-close");
             _btnUndoStep = root.Q<Button>("btn-undo-step");
@@ -269,7 +283,10 @@ namespace GameProject.UI
             RegisterEffectToggle(_toggleShockwave);
             RegisterEffectToggle(_toggleLeap);
             RegisterEffectToggle(_toggleHeal);
+            RegisterEffectToggle(_toggleFlame);
+            RegisterEffectToggle(_toggleFrost);
 
+            RefreshEffectUnlockStates();
             UpdateStepPreview();
             UpdateCostPreview();
         }
@@ -292,6 +309,8 @@ namespace GameProject.UI
             UnregisterEffectToggle(_toggleShockwave);
             UnregisterEffectToggle(_toggleLeap);
             UnregisterEffectToggle(_toggleHeal);
+            UnregisterEffectToggle(_toggleFlame);
+            UnregisterEffectToggle(_toggleFrost);
         }
 
         private void RegisterEffectToggle(Toggle toggle)
@@ -420,11 +439,68 @@ namespace GameProject.UI
         private List<SkillEffectType> CollectSelectedEffects()
         {
             List<SkillEffectType> list = new List<SkillEffectType>();
-            if (_toggleLunge != null && _toggleLunge.value) list.Add(SkillEffectType.ForwardLunge);
-            if (_toggleShockwave != null && _toggleShockwave.value) list.Add(SkillEffectType.AreaShockwave);
-            if (_toggleLeap != null && _toggleLeap.value) list.Add(SkillEffectType.HighLeap);
-            if (_toggleHeal != null && _toggleHeal.value) list.Add(SkillEffectType.HealBurst);
+            if (_toggleLunge != null && _toggleLunge.value && IsUnlocked(SkillEffectType.ForwardLunge)) list.Add(SkillEffectType.ForwardLunge);
+            if (_toggleShockwave != null && _toggleShockwave.value && IsUnlocked(SkillEffectType.AreaShockwave)) list.Add(SkillEffectType.AreaShockwave);
+            if (_toggleLeap != null && _toggleLeap.value && IsUnlocked(SkillEffectType.HighLeap)) list.Add(SkillEffectType.HighLeap);
+            if (_toggleHeal != null && _toggleHeal.value && IsUnlocked(SkillEffectType.HealBurst)) list.Add(SkillEffectType.HealBurst);
+            if (_toggleFlame != null && _toggleFlame.value && IsUnlocked(SkillEffectType.FlameNova)) list.Add(SkillEffectType.FlameNova);
+            if (_toggleFrost != null && _toggleFrost.value && IsUnlocked(SkillEffectType.FrostSlow)) list.Add(SkillEffectType.FrostSlow);
             return list;
+        }
+
+        private bool IsUnlocked(SkillEffectType effect)
+        {
+            return comboDetector == null || comboDetector.IsEffectUnlocked(effect);
+        }
+
+        private void HandleUnlockedEffectsChanged(IReadOnlyList<SkillEffectType> unlocked)
+        {
+            RefreshEffectUnlockStates();
+        }
+
+        public void RefreshEffectUnlockStates()
+        {
+            bool flameUnlocked = comboDetector != null && comboDetector.IsEffectUnlocked(SkillEffectType.FlameNova);
+            bool frostUnlocked = comboDetector != null && comboDetector.IsEffectUnlocked(SkillEffectType.FrostSlow);
+
+            ConfigureUnlockableToggle(
+                _toggleFlame,
+                flameUnlocked,
+                "Hỏa Bộc (FlameNova — Nổ lửa + Thiêu đốt 3s)",
+                "FlameNova — Nhặt Mảnh Kỹ Năng từ quái để mở khóa",
+                "effect-toggle--flame");
+
+            ConfigureUnlockableToggle(
+                _toggleFrost,
+                frostUnlocked,
+                "Băng Giá (FrostSlow — Vòng băng + Làm chậm 50% trong 3s)",
+                "FrostSlow — Nhặt Mảnh Kỹ Năng từ quái để mở khóa",
+                "effect-toggle--frost");
+        }
+
+        private void ConfigureUnlockableToggle(
+            Toggle toggle,
+            bool unlocked,
+            string unlockedLabel,
+            string lockedLabel,
+            string unlockedStyleClass)
+        {
+            if (toggle == null)
+            {
+                return;
+            }
+
+            toggle.SetEnabled(unlocked);
+            toggle.label = unlocked ? unlockedLabel : lockedLabel;
+            toggle.EnableInClassList("effect-toggle--locked", !unlocked);
+            toggle.EnableInClassList(unlockedStyleClass, unlocked);
+
+            if (!unlocked && toggle.value)
+            {
+                _suppressToggleCallback = true;
+                toggle.value = false;
+                _suppressToggleCallback = false;
+            }
         }
 
         private void UpdateStepPreview()

@@ -19,18 +19,12 @@ namespace GameProject.World
 
         private void Awake()
         {
-            if (worldState == null)
-            {
-                worldState = FindAnyObjectByType<WorldStateManager>();
-            }
+            worldState = WorldStateManager.Resolve();
         }
 
         private void OnEnable()
         {
-            if (worldState == null)
-            {
-                worldState = FindAnyObjectByType<WorldStateManager>();
-            }
+            worldState = WorldStateManager.Resolve();
 
             if (worldState != null)
             {

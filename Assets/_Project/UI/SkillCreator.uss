@@ -243,13 +243,33 @@
     padding-left: 8px;
     padding-right: 8px;
     background-color: rgba(24, 33, 47, 0.75);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
     border-radius: 6px;
 }
 
 .effect-toggle .unity-toggle__label {
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 13px;
     margin-left: 8px;
+}
+
+.effect-toggle--locked {
+    opacity: 0.48;
+    background-color: rgba(16, 20, 28, 0.65);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.effect-toggle--locked .unity-toggle__label {
+    color: var(--text-secondary);
+}
+
+.effect-toggle--flame {
+    border-color: rgba(255, 130, 42, 0.65);
+}
+
+.effect-toggle--frost {
+    border-color: rgba(82, 220, 255, 0.65);
 }
 
 .equipped-list {

@@ -147,6 +147,60 @@ namespace GameProject.Skills
                 Vector3.zero);
         }
 
+        public static void SpawnFlameNova(Vector3 origin, float maxRadius = 4.8f)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = "VFX_FlameNova";
+            RemoveColliders(go);
+            go.transform.position = origin + new Vector3(0f, 0.3f, 0f);
+
+            SkillVisualEffect fx = go.AddComponent<SkillVisualEffect>();
+            fx.Initialize(
+                new Vector3(1.0f, 0.16f, 1.0f),
+                new Vector3(maxRadius * 2f, 0.10f, maxRadius * 2f),
+                Vector3.zero,
+                new Color(1.0f, 0.42f, 0.08f, 0.82f),
+                0.50f,
+                null,
+                Vector3.zero);
+        }
+
+        public static void SpawnFrostSlow(Vector3 origin, float maxRadius = 5.0f)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = "VFX_FrostSlow";
+            RemoveColliders(go);
+            go.transform.position = origin + new Vector3(0f, 0.18f, 0f);
+
+            SkillVisualEffect fx = go.AddComponent<SkillVisualEffect>();
+            fx.Initialize(
+                new Vector3(1.0f, 0.10f, 1.0f),
+                new Vector3(maxRadius * 2f, 0.08f, maxRadius * 2f),
+                Vector3.zero,
+                new Color(0.28f, 0.86f, 1.0f, 0.78f),
+                0.55f,
+                null,
+                Vector3.zero);
+        }
+
+        public static void SpawnShardPickupBurst(Vector3 origin, Color color)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            go.name = "VFX_ShardPickup";
+            RemoveColliders(go);
+            go.transform.position = origin;
+
+            SkillVisualEffect fx = go.AddComponent<SkillVisualEffect>();
+            fx.Initialize(
+                new Vector3(0.45f, 0.45f, 0.45f),
+                new Vector3(2.4f, 2.4f, 2.4f),
+                Vector3.up * 0.9f,
+                new Color(color.r, color.g, color.b, 0.82f),
+                0.42f,
+                null,
+                Vector3.zero);
+        }
+
         private void Initialize(
             Vector3 startScale,
             Vector3 endScale,

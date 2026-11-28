@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="GameOver.uss" />
+    <ui:VisualElement name="gameover-overlay" class="gameover-overlay gameover-overlay--hidden">
+        <ui:VisualElement class="gameover-card">
+            <ui:Label text="CHIẾN BINH ĐÃ GỤC NGÃ" class="gameover-kicker" />
+            <ui:Label text="GAME OVER" class="gameover-title" />
+            <ui:Label text="HP đã cạn kiệt. Hãy thử lại hoặc quay về bản lưu gần nhất." class="gameover-subtitle" />
+
+            <ui:VisualElement class="gameover-divider" />
+
+            <ui:VisualElement class="gameover-buttons">
+                <ui:Button name="btn-retry" text="Chơi lại màn này" class="gameover-btn gameover-btn--primary" />
+                <ui:Button name="btn-load-save" text="Tải bản lưu gần nhất" class="gameover-btn" />
+                <ui:Button name="btn-gameover-menu" text="Về Main Menu" class="gameover-btn gameover-btn--danger" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

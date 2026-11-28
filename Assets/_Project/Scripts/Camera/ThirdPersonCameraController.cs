@@ -61,6 +61,7 @@ namespace GameProject.CameraSystem
         private float _timeSinceManualLook;
         private Transform _playerRoot;
         private bool _inputLocked;
+        private int _lastUnlockFrame = -1;
         private CameraShake _cameraShake;
 
         public bool InputLocked
@@ -78,9 +79,13 @@ namespace GameProject.CameraSystem
                 {
                     SetCursorLocked(false);
                 }
-                else if (lockCursorOnStart)
+                else
                 {
-                    SetCursorLocked(true);
+                    _lastUnlockFrame = Time.frameCount;
+                    if (lockCursorOnStart)
+                    {
+                        SetCursorLocked(true);
+                    }
                 }
             }
         }
@@ -172,13 +177,14 @@ namespace GameProject.CameraSystem
 
         private void HandleCursorLockToggle()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (Time.frameCount == _lastUnlockFrame)
             {
-                SetCursorLocked(false);
+                return;
             }
-            else if (Cursor.lockState != CursorLockMode.Locked &&
-                     Mouse.current != null &&
-                     Mouse.current.leftButton.wasPressedThisFrame)
+
+            if (Cursor.lockState != CursorLockMode.Locked &&
+                Mouse.current != null &&
+                Mouse.current.leftButton.wasPressedThisFrame)
             {
                 SetCursorLocked(true);
             }

@@ -6,6 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/_Project/Scenes/MainMenu.unity
+    guid: 27db7c176102ba34a914e7809c7042ce
+  - enabled: 1
+    path: Assets/_Project/Scenes/Zone_Village.unity
+    guid: d733b08865f6eb64fa09d781a9ddb849
+  - enabled: 1
+    path: Assets/_Project/Scenes/Zone_MistyForest.unity
+    guid: 4029f54155122bb409baa0aa3f0a0d2d
+  - enabled: 1
+    path: Assets/_Project/Scenes/Zone_AncientRuins.unity
+    guid: 88674987e3ad2c34fb069c563ade0102
+  - enabled: 1
     path: Assets/_Project/Scenes/Sandbox_Test.unity
     guid: b19494a57b81fb94aa58bb7e4b4de272
   - enabled: 1

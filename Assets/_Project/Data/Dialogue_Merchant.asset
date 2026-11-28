@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82cf4da57ac318440a8a82d3bc1b5e82, type: 3}
+  m_Name: Dialogue_Merchant
+  m_EditorClassIdentifier: Assembly-CSharp::GameProject.Interaction.DialogueData
+  speakerName: "Th\u01B0\u01A1ng Nh\xE2n (Merchant)"
+  startNodeId: greeting
+  nodes:
+  - nodeId: greeting
+    speakerOverride: 
+    bodyText: "H\xE0ng hi\u1EBFm t\u1EEB kh\u1EAFp 3 v\xF9ng \u0111\u1EA5t \u0111\xE2y! C\u1EADu mu\u1ED1n h\u1ECFi tin t\u1EE9c v\u1EC1 Di T\xEDch C\u1ED5 \u0110\u1EA1i hay mu\u1ED1n xem \u0111\u1ED3?"
+    choices:
+    - choiceText: "K\u1EC3 cho t\xF4i nghe v\u1EC1 R\u1EEBng S\u01B0\u01A1ng M\xF9 v\xE0 Di T\xEDch C\u1ED5 \u0110\u1EA1i."
+      nextNodeId: info
+      conditions:
+      - key: merchant_hostile
+        comparison: 1
+        value: 1
+      stateEffects: []
+    - choiceText: "Giao \u0111\u1ED3 ti\u1EBFp t\u1EBF mi\u1EC5n ph\xED ra \u0111\xE2y n\u1EBFu kh\xF4ng mu\u1ED1n g\u1EB7p r\u1EAFc r\u1ED1i!"
+      nextNodeId: hostile
+      conditions:
+      - key: merchant_hostile
+        comparison: 1
+        value: 1
+      stateEffects:
+      - key: merchant_hostile
+        mutationType: 0
+        value: 1
+      - key: merchant_hostile
+        mutationType: 2
+        value: 1
+    - choiceText: "T\xF4i mu\u1ED1n mua \u0111\u1ED3..."
+      nextNodeId: still_hostile
+      conditions:
+      - key: merchant_hostile
+        comparison: 0
+        value: 1
+      stateEffects: []
+    - choiceText: "T\u1EA1m bi\u1EC7t."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: info
+    speakerOverride: 
+    bodyText: "C\u1ED5ng ph\xEDa B\u1EAFc d\u1EABn th\u1EB3ng v\xE0o R\u1EEBng S\u01B0\u01A1ng M\xF9, r\u1ED3i t\u1EEB \u0111\xF3 th\xF4ng sang Di T\xEDch C\u1ED5 \u0110\u1EA1i. M\u1ED9t v\u1ECB L\u1EEF Kh\xE1ch v\u1EEBa b\u1ECB qu\xE1i Tinh Anh \u0111\xE1nh tr\u1ECDng th\u01B0\u01A1ng trong r\u1EEBng \u2014 h\xE3y gi\xFAp anh ta n\u1EBFu c\u1EADu g\u1EB7p!"
+    choices:
+    - choiceText: "C\u1EA3m \u01A1n th\xF4ng tin h\u1EEFu \xEDch!"
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: hostile
+    speakerOverride: 
+    bodyText: "L\xE1o x\u01B0\u1EE3c! D\xE1m \u0111e d\u1ECDa ta gi\u1EEFa ban ng\xE0y sao?! (merchant_hostile = 1). T\u1EEB nay ta tuy\u1EC7t giao v\u1EDBi ng\u01B0\u01A1i!"
+    choices:
+    - choiceText: "R\u1EDDi kh\u1ECFi s\u1EA1p h\xE0ng."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []
+  - nodeId: still_hostile
+    speakerOverride: 
+    bodyText: "Ta \u0111\xE3 n\xF3i r\u1ED3i, ta kh\xF4ng ti\u1EBFp k\u1EBB th\xF4 l\u1ED7 nh\u01B0 ng\u01B0\u01A1i! H\xE3y bi\u1EBFn kh\u1ECFi \u0111\xE2y!"
+    choices:
+    - choiceText: "R\u1EDDi \u0111i."
+      nextNodeId: 
+      conditions: []
+      stateEffects: []

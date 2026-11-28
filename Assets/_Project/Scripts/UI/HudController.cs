@@ -325,6 +325,10 @@ namespace GameProject.UI
                 return;
             }
 
+            root.pickingMode = PickingMode.Ignore;
+
+            root.pickingMode = PickingMode.Ignore;
+
             _hpFill = root.Q<VisualElement>("hp-fill");
             _hpValueLabel = root.Q<Label>("hp-value");
             _staminaFill = root.Q<VisualElement>("stamina-fill");

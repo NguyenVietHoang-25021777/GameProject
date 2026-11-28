@@ -18,6 +18,9 @@ namespace GameProject.Feedback
         [SerializeField] private AudioClip shockwaveClip;
         [SerializeField] private AudioClip lungeDashClip;
         [SerializeField] private AudioClip highLeapClip;
+        [SerializeField] private AudioClip shardPickupClip;
+        [SerializeField] private AudioClip flameNovaClip;
+        [SerializeField] private AudioClip frostSlowClip;
 
         [Header("Volume")]
         [Range(0f, 1f)] [SerializeField] private float masterVolume = 0.75f;
@@ -32,6 +35,9 @@ namespace GameProject.Feedback
         private AudioClip _activeShockwave;
         private AudioClip _activeLunge;
         private AudioClip _activeLeap;
+        private AudioClip _activeShardPickup;
+        private AudioClip _activeFlameNova;
+        private AudioClip _activeFrostSlow;
 
         private void Awake()
         {
@@ -40,6 +46,7 @@ namespace GameProject.Feedback
             {
                 if (existing[i] != this && existing[i]._isPersistentOwner)
                 {
+                    gameObject.SetActive(false);
                     Destroy(gameObject);
                     return;
                 }
@@ -74,6 +81,9 @@ namespace GameProject.Feedback
         public void PlayShockwave() => PlayClip(_activeShockwave, 0.9f);
         public void PlayLungeDash() => PlayClip(_activeLunge, 0.8f);
         public void PlayHighLeap() => PlayClip(_activeLeap, 0.75f);
+        public void PlayShardPickup() => PlayClip(_activeShardPickup, 0.9f);
+        public void PlayFlameNova() => PlayClip(_activeFlameNova, 0.9f);
+        public void PlayFrostSlow() => PlayClip(_activeFrostSlow, 0.85f);
 
         private void PlayClip(AudioClip clip, float volumeScale)
         {
@@ -93,6 +103,9 @@ namespace GameProject.Feedback
             _activeShockwave = shockwaveClip != null ? shockwaveClip : CreateShockwaveClip();
             _activeLunge = lungeDashClip != null ? lungeDashClip : CreateLungeClip();
             _activeLeap = highLeapClip != null ? highLeapClip : CreateLeapClip();
+            _activeShardPickup = shardPickupClip != null ? shardPickupClip : CreateShardPickupClip();
+            _activeFlameNova = flameNovaClip != null ? flameNovaClip : CreateFlameNovaClip();
+            _activeFrostSlow = frostSlowClip != null ? frostSlowClip : CreateFrostSlowClip();
         }
 
         private AudioClip CreateSwingClip()
@@ -249,6 +262,80 @@ namespace GameProject.Feedback
             }
 
             return RegisterClip("SFX_Procedural_Leap", data, sampleRate);
+        }
+
+        private AudioClip CreateShardPickupClip()
+        {
+            const int sampleRate = 44100;
+            float duration = 0.42f;
+            int length = Mathf.RoundToInt(sampleRate * duration);
+            float[] data = new float[length];
+            float[] notes = { 783.99f, 1046.5f, 1318.5f, 1567.98f };
+
+            for (int i = 0; i < length; i++)
+            {
+                float sec = (float)i / sampleRate;
+                float sum = 0f;
+                for (int n = 0; n < notes.Length; n++)
+                {
+                    float start = n * 0.055f;
+                    if (sec < start) continue;
+                    float local = sec - start;
+                    float env = Mathf.Clamp01(local / 0.01f) * Mathf.Exp(-local * 9f);
+                    sum += (Mathf.Sin(2f * Mathf.PI * notes[n] * local) * 0.7f
+                          + Mathf.Sin(4f * Mathf.PI * notes[n] * local) * 0.3f) * env;
+                }
+                data[i] = Mathf.Clamp(sum * 0.25f, -1f, 1f);
+            }
+
+            return RegisterClip("SFX_Procedural_ShardPickup", data, sampleRate);
+        }
+
+        private AudioClip CreateFlameNovaClip()
+        {
+            const int sampleRate = 44100;
+            float duration = 0.40f;
+            int length = Mathf.RoundToInt(sampleRate * duration);
+            float[] data = new float[length];
+            System.Random rng = new System.Random(505);
+            float phase = 0f;
+            float lpNoise = 0f;
+
+            for (int i = 0; i < length; i++)
+            {
+                float t = (float)i / length;
+                float env = Mathf.Pow(1f - t, 1.5f) * Mathf.Clamp01(t / 0.04f);
+                float freq = Mathf.Lerp(180f, 48f, t);
+                phase += 2f * Mathf.PI * freq / sampleRate;
+                float raw = (float)(rng.NextDouble() * 2.0 - 1.0);
+                lpNoise = Mathf.Lerp(lpNoise, raw, 0.28f);
+                data[i] = Mathf.Clamp((Mathf.Sin(phase) * 0.55f + lpNoise * 0.75f) * env * 0.75f, -1f, 1f);
+            }
+
+            return RegisterClip("SFX_Procedural_FlameNova", data, sampleRate);
+        }
+
+        private AudioClip CreateFrostSlowClip()
+        {
+            const int sampleRate = 44100;
+            float duration = 0.42f;
+            int length = Mathf.RoundToInt(sampleRate * duration);
+            float[] data = new float[length];
+            System.Random rng = new System.Random(606);
+
+            for (int i = 0; i < length; i++)
+            {
+                float sec = (float)i / sampleRate;
+                float t = (float)i / length;
+                float env = Mathf.Clamp01(t / 0.03f) * Mathf.Exp(-t * 4.5f);
+                float chime = Mathf.Sin(2f * Mathf.PI * 1180f * sec) * 0.4f
+                            + Mathf.Sin(2f * Mathf.PI * 1770f * sec) * 0.3f
+                            + Mathf.Sin(2f * Mathf.PI * 2360f * sec) * 0.15f;
+                float shimmer = (float)(rng.NextDouble() * 2.0 - 1.0) * 0.25f * (1f - t);
+                data[i] = Mathf.Clamp((chime + shimmer) * env * 0.55f, -1f, 1f);
+            }
+
+            return RegisterClip("SFX_Procedural_FrostSlow", data, sampleRate);
         }
 
         private AudioClip RegisterClip(string clipName, float[] samples, int sampleRate)

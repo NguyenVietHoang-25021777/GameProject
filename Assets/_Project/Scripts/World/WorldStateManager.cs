@@ -51,10 +51,58 @@ namespace GameProject.World
     /// </summary>
     public class WorldStateManager : MonoBehaviour
     {
+        public static WorldStateManager Instance { get; private set; }
+
         private readonly Dictionary<string, int> _intStates = new Dictionary<string, int>();
         private readonly HashSet<string> _flags = new HashSet<string>();
+        private bool _isPersistentInstance;
 
         public event Action<string, int> OnWorldStateChanged;
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                enabled = false;
+                if (GetComponents<Component>().Length <= 2)
+                {
+                    gameObject.SetActive(false);
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    Destroy(this);
+                }
+                return;
+            }
+
+            Instance = this;
+            if (transform.parent == null && GetComponents<Component>().Length <= 2)
+            {
+                _isPersistentInstance = true;
+                DontDestroyOnLoad(gameObject);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
+        public static WorldStateManager Resolve()
+        {
+            return Instance != null ? Instance : FindAnyObjectByType<WorldStateManager>();
+        }
+
+        public void ResetState()
+        {
+            _intStates.Clear();
+            _flags.Clear();
+            OnWorldStateChanged?.Invoke("_world_state_loaded", 0);
+        }
 
         public int GetInt(string key, int defaultValue = 0)
         {
